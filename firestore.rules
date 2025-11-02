@@ -131,7 +131,7 @@ service cloud.firestore {
       // Allow any authenticated user to create a donation record.
       allow create: if request.auth != null;
 
-      // Allow a user to read their own donation records.
+      // Allow a user to read their own donation record.
       allow get: if request.auth.uid == resource.data.donorId;
 
       // Allow authenticated users to list ONLY their own donations.
@@ -152,16 +152,15 @@ service cloud.firestore {
      * @principle Enables a centralized notification system while maintaining privacy.
      */
     match /notifications/{notificationId} {
-      
       // Allow creation if the user is authenticated and is not sending a notification to themselves.
       allow create: if request.auth != null && request.auth.uid != request.resource.data.userId;
 
-      // Allow a user to get their own notification.
+      // A user can read a single notification if they are the recipient.
       allow get: if request.auth.uid == resource.data.userId;
-
-      // Allow a user to list their own notifications.
-      // The client query MUST enforce this by filtering where `userId` == `request.auth.uid`.
-      allow list: if request.auth != null && request.query.get("userId") == request.auth.uid;
+      
+      // A user can query notifications if their query is filtered by their own userId.
+      // This prevents listing all notifications in the system.
+      allow list: if request.auth != null && request.query.get('userId') == request.auth.uid;
 
       // Allow a user to update their own notification (e.g., to mark it as read).
       allow update: if request.auth.uid == resource.data.userId;
