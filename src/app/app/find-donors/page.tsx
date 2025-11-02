@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { MapPin, Search } from 'lucide-react';
+import { MapPin, Search, Loader2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -24,14 +24,13 @@ export default function FindDonorsPage() {
     latitude: number;
     longitude: number;
   } | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [nearbyDonors, setNearbyDonors] = useState<User[]>([]);
   const { toast } = useToast();
 
-  const handleGetLocation = () => {
-    setLoading(true);
-    setError(null);
+  useEffect(() => {
+    // Automatically get location on component mount
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -39,7 +38,6 @@ export default function FindDonorsPage() {
             latitude: position.coords.latitude,
             longitude: position.coords.longitude,
           });
-          setLoading(false);
           toast({ title: 'Location captured successfully!' });
         },
         (err) => {
@@ -51,16 +49,17 @@ export default function FindDonorsPage() {
       setError('Geolocation is not supported by this browser.');
       setLoading(false);
     }
-  };
+  }, [toast]);
 
   useEffect(() => {
     if (location) {
       // In a real app, you'd fetch this from a backend.
-      // Here, we just filter mock data. We'll pretend the NY users are "nearby".
+      // Here, we just filter mock data. We'll pretend the Delhi users are "nearby".
       const donors = users.filter(
-        (user) => user.role === 'donor' && user.location.includes('New York')
+        (user) => user.role === 'donor' && user.location.includes('Delhi')
       );
       setNearbyDonors(donors);
+      setLoading(false);
     }
   }, [location]);
 
@@ -76,25 +75,27 @@ export default function FindDonorsPage() {
       <h2 className="text-3xl font-bold tracking-tight font-headline">Find Nearby Donors</h2>
       <Card>
         <CardHeader>
-          <CardTitle>Geolocation Search</CardTitle>
+          <CardTitle>Donors Near You</CardTitle>
           <CardDescription>
-            Use your current location to find available blood donors near you.
+            We've automatically detected your location to find available blood donors near you.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex flex-col sm:flex-row gap-2">
-            <Input placeholder="Search by city or zip code..." className="max-w-xs" />
-             <Button onClick={handleGetLocation} disabled={loading}>
-              <MapPin className="mr-2 h-4 w-4" />
-              {loading ? 'Getting Location...' : 'Use My Current Location'}
-            </Button>
-          </div>
-          {error && <p className="text-sm text-destructive">{error}</p>}
-          {location && (
-            <p className="text-sm text-muted-foreground">
-              Your approximate location: Latitude: {location.latitude.toFixed(2)}, Longitude: {location.longitude.toFixed(2)}
-            </p>
-          )}
+           {error && <p className="text-sm text-destructive">{error}</p>}
+           {location && !loading && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <MapPin className="h-4 w-4" />
+              <span>
+                Showing donors near your approximate location (Lat: {location.latitude.toFixed(2)}, Lon: {location.longitude.toFixed(2)})
+              </span>
+            </div>
+           )}
+           {loading && !error && (
+             <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Fetching your location to find nearby donors...</span>
+             </div>
+           )}
         </CardContent>
       </Card>
 
@@ -120,12 +121,12 @@ export default function FindDonorsPage() {
 
       {!loading && nearbyDonors.length > 0 && (
         <div>
-          <h3 className="text-2xl font-bold tracking-tight mb-4 font-headline">Available Donors Near You</h3>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <h3 className="text-2xl font-bold tracking-tight mb-4 font-headline">Available Donors</h3>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {nearbyDonors.map((donor) => (
-              <Card key={donor.id}>
+              <Card key={donor.id} className="hover:shadow-lg transition-shadow">
                 <CardHeader className="flex flex-row items-center gap-4">
-                  <Avatar className="h-12 w-12">
+                  <Avatar className="h-12 w-12 border-2 border-primary/50">
                     <AvatarImage src={donor.avatarUrl} alt={donor.name} />
                     <AvatarFallback>{donor.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                   </Avatar>
@@ -140,7 +141,7 @@ export default function FindDonorsPage() {
                     <Badge variant={donor.availability === 'Available' ? 'default' : 'secondary'} className={donor.availability === 'Available' ? 'bg-green-600' : ''}>{donor.availability}</Badge>
                   </div>
                    <p className="text-sm text-muted-foreground">Last donation: {donor.lastDonation}</p>
-                  <Button onClick={() => handleRequest(donor.name)} disabled={donor.availability !== 'Available'}>
+                  <Button onClick={() => handleRequest(donor.name)} disabled={donor.availability !== 'Available'} className="bg-accent text-accent-foreground hover:bg-accent/90">
                     Request Donation
                   </Button>
                 </CardContent>
@@ -151,8 +152,9 @@ export default function FindDonorsPage() {
       )}
 
       {!loading && nearbyDonors.length === 0 && location && (
-         <div className="text-center py-10">
-            <p className="text-muted-foreground">No donors found for your location. Please try searching another area.</p>
+         <div className="text-center py-10 bg-card rounded-lg border">
+            <p className="text-lg font-semibold">No Donors Found</p>
+            <p className="text-muted-foreground mt-2">No donors were found for your current location. Please try again later.</p>
          </div>
       )}
     </div>
