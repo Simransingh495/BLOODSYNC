@@ -56,6 +56,11 @@ export default function RequestBloodPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isLocationLoading, setIsLocationLoading] = useState(false);
   const [userCoords, setUserCoords] = useState<{ lat: number; lon: number } | null>(null);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -71,8 +76,7 @@ export default function RequestBloodPage() {
   });
 
   useEffect(() => {
-    // This effect runs only on the client, preventing a hydration mismatch.
-    if (navigator.geolocation) {
+    if (isClient && navigator.geolocation) {
       setIsLocationLoading(true);
       navigator.geolocation.getCurrentPosition(
         async (position) => {
@@ -111,7 +115,7 @@ export default function RequestBloodPage() {
         }
       );
     }
-  }, [form, toast]);
+  }, [form, toast, isClient]);
 
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -219,7 +223,7 @@ export default function RequestBloodPage() {
                       <FormControl>
                         <div className="relative">
                           <Input placeholder="e.g., City General Hospital" {...field} />
-                           {isLocationLoading && <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />}
+                           {isClient && isLocationLoading && <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />}
                         </div>
                       </FormControl>
                       <FormMessage />
