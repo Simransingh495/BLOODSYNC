@@ -20,7 +20,7 @@ import {
   addDoc,
 } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { BloodRequest, User } from '@/lib/types';
+import type { BloodRequest, User, Notification } from '@/lib/types';
 import { LifeBuoy, Share, HeartHandshake, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
@@ -90,28 +90,23 @@ export default function OverviewPage() {
         matchDate: serverTimestamp(),
         status: 'pending',
       };
-
       await addDoc(matchCollection, newMatch);
       
-      // 2. Send the SMS notification via our API endpoint
-      const message = `A donor (${currentUserData.firstName}, Blood Type: ${currentUserData.bloodType}) has offered to fulfill your request for ${request.bloodType} blood. Please go to "My Requests" in the app to accept.`;
-      
-      const smsResponse = await fetch('/api/send-sms', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          to: request.contactPhone,
-          message: message,
-        }),
-      });
-
-      if (!smsResponse.ok) {
-        throw new Error('Failed to send SMS notification.');
-      }
+      // 2. Create a notification for the patient
+      const notificationCollection = collection(firestore, 'notifications');
+      const newNotification: Omit<Notification, 'id'> = {
+        userId: request.userId,
+        message: `A donor (${currentUserData.firstName}, Blood Type: ${currentUserData.bloodType}) has offered to fulfill your request for ${request.bloodType} blood.`,
+        type: 'request_match',
+        relatedId: request.id,
+        isRead: false,
+        createdAt: serverTimestamp(),
+      };
+      await addDoc(notificationCollection, newNotification);
 
       toast({
         title: 'Offer Sent!',
-        description: `The patient has been notified of your offer via SMS.`,
+        description: `The patient has been notified of your offer.`,
       });
     } catch (err) {
       console.error('Error offering donation: ', err);

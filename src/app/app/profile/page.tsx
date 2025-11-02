@@ -10,6 +10,7 @@ import {
   Settings,
   Timer,
   User as UserIcon,
+  Bell,
 } from 'lucide-react';
 import Link from 'next/link';
 import { Switch } from '@/components/ui/switch';
@@ -111,6 +112,7 @@ export default function ProfilePage() {
 
   const menuItems = [
     { label: 'Edit Profile', icon: UserIcon, href: '/app/profile/edit' },
+    { label: 'Notifications', icon: Bell, href: '/app/profile/notifications' },
     { label: 'Donation History', icon: List, href: '/app/profile/donations' },
     { label: 'My Requests', icon: List, href: '/app/profile/requests' },
     { label: 'Set Timer', icon: Timer, href: '/app/profile/reminder' },

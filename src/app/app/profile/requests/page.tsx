@@ -22,8 +22,9 @@ import {
   doc,
   updateDoc,
   addDoc,
+  serverTimestamp,
 } from 'firebase/firestore';
-import type { BloodRequest, DonationMatch, Donation } from '@/lib/types';
+import type { BloodRequest, DonationMatch, Donation, Notification } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   ClipboardList,
@@ -92,6 +93,7 @@ export default function MyRequestsPage() {
     const matchRef = doc(firestore, 'donationMatches', match.id);
     const requestRef = doc(firestore, 'bloodRequests', match.requestId);
     const requestDoc = requests?.find((r) => r.id === match.requestId);
+    const notificationCollection = collection(firestore, 'notifications');
 
     try {
       await updateDoc(matchRef, { status: response });
@@ -112,28 +114,24 @@ export default function MyRequestsPage() {
         };
         await addDoc(donationCollection, newDonation);
         
-        // Send SMS notification
-        const message = `Your donation offer for ${requestDoc.bloodType} blood has been accepted! Please contact the patient at ${requestDoc.contactPhone} or ${requestDoc.contactEmail}.`;
-        const smsResponse = await fetch('/api/send-sms', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            to: match.donorPhoneNumber,
-            message: message,
-          }),
-        });
-
-        if (!smsResponse.ok) {
-            throw new Error('Failed to send acceptance SMS.');
-        }
+        // Create notification for the donor
+        const acceptedNotification: Omit<Notification, 'id'> = {
+            userId: match.donorId,
+            message: `Your donation offer for ${requestDoc.bloodType} blood has been accepted! The patient's contact is ${requestDoc.contactPhone} and ${requestDoc.contactEmail}.`,
+            type: 'offer_accepted',
+            relatedId: match.requestId,
+            isRead: false,
+            createdAt: serverTimestamp(),
+        };
+        await addDoc(notificationCollection, acceptedNotification);
 
         toast({
           title: 'Match Accepted!',
           description:
-            'The donor has been notified with your contact details via SMS.',
+            'The donor has been notified with your contact details.',
         });
 
-        // Reject other pending offers for this request
+        // Reject other pending offers for this request and notify them
         const otherPendingMatches = matches?.filter(
           (m) =>
             m.requestId === match.requestId &&
@@ -148,27 +146,33 @@ export default function MyRequestsPage() {
               otherMatch.id
             );
             await updateDoc(otherMatchRef, { status: 'rejected' });
+            
+            const rejectedNotification: Omit<Notification, 'id'> = {
+                userId: otherMatch.donorId,
+                message: `Your donation offer for request #${match.requestId.substring(0,5)} was not accepted this time. Thank you for your willingness to help.`,
+                type: 'offer_rejected',
+                relatedId: otherMatch.requestId,
+                isRead: false,
+                createdAt: serverTimestamp(),
+            };
+            await addDoc(notificationCollection, rejectedNotification);
           }
         }
       } else if (response === 'rejected') {
-         // Send rejection SMS
-        const message = `Your donation offer for request #${match.requestId.substring(0,5)} was not accepted this time. Thank you for your willingness to help.`;
-        const smsResponse = await fetch('/api/send-sms', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            to: match.donorPhoneNumber,
-            message: message,
-          }),
-        });
-
-        if (!smsResponse.ok) {
-            throw new Error('Failed to send rejection SMS.');
-        }
+         // Create rejection notification
+        const rejectedNotification: Omit<Notification, 'id'> = {
+            userId: match.donorId,
+            message: `Your donation offer for request #${match.requestId.substring(0,5)} was not accepted this time. Thank you for your willingness to help.`,
+            type: 'offer_rejected',
+            relatedId: match.requestId,
+            isRead: false,
+            createdAt: serverTimestamp(),
+        };
+        await addDoc(notificationCollection, rejectedNotification);
 
         toast({
           title: 'Offer Rejected',
-          description: 'The offer has been declined and the donor has been notified via SMS.',
+          description: 'The offer has been declined and the donor has been notified.',
         });
       }
     } catch (err: any) {
