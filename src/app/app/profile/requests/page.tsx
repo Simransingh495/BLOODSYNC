@@ -112,15 +112,14 @@ export default function MyRequestsPage() {
         };
         await addDoc(donationCollection, newDonation);
         
-        // TODO: This section does not send a real email.
-        // It simulates the action by logging to the console.
-        // To send a real email, you would need to replace the console.log
-        // with a call to a backend function or a third-party email service (e.g., SendGrid, Mailgun).
+        // TODO: This section does not send a real SMS. It simulates the action by logging to the console.
+        // To send a real SMS, you would need to replace the console.log
+        // with a call to a backend function or a third-party SMS service (e.g., Twilio).
         console.log(`
-            --- SIMULATING ACCEPTANCE EMAIL ---
-            This is not a real email. It is a console log acting as a placeholder.
-            To: Donor (${match.donorEmail})
-            From: Patient (${user.email})
+            --- SIMULATING ACCEPTANCE SMS ---
+            This is not a real SMS. It is a console log acting as a placeholder.
+            To: Donor's Phone (${match.donorPhoneNumber})
+            From: BloodSync System
             Message: Your donation offer for ${requestDoc.bloodType} blood has been accepted! 
             Please contact the patient at ${requestDoc.contactPhone} or ${requestDoc.contactEmail}.
             --- END SIMULATION ---
@@ -129,7 +128,7 @@ export default function MyRequestsPage() {
         toast({
           title: 'Match Accepted!',
           description:
-            'The donor has been notified with your contact details via email.',
+            'The donor has been notified with your contact details.',
         });
 
         // Reject other pending offers for this request
@@ -150,12 +149,11 @@ export default function MyRequestsPage() {
           }
         }
       } else if (response === 'rejected') {
-        // TODO: This section does not send a real email.
-        // It simulates sending a rejection email.
+        // TODO: This section does not send a real SMS. It simulates sending a rejection notification.
         console.log(`
-            --- SIMULATING REJECTION EMAIL ---
-            This is not a real email. It is a console log acting as a placeholder.
-            To: Donor (${match.donorEmail})
+            --- SIMULATING REJECTION SMS ---
+            This is not a real SMS. It is a console log acting as a placeholder.
+            To: Donor's Phone (${match.donorPhoneNumber})
             Message: Your donation offer for request #${match.requestId.substring(
               0,
               5

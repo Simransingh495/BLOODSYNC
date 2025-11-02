@@ -172,18 +172,16 @@ export default function DonatePage() {
     setDonating(request.id);
 
     try {
-      // TODO: This section does not send a real email.
-      // It simulates the action by logging to the console.
-      // To send a real email, you would need to replace the console.log
-      // with a call to a backend function or a third-party email service (e.g., SendGrid, Mailgun).
+      // TODO: This section does not send a real SMS. It simulates the action by logging to the console.
+      // To send a real SMS, you would need to replace the console.log
+      // with a call to a backend function or a third-party SMS service (e.g., Twilio).
       console.log(`
-            --- SIMULATING NOTIFICATION ---
-            This is not a real email. It is a console log acting as a placeholder.
-            To: Patient (${request.userId})
-            From: Donor (${currentUser.uid})
+            --- SIMULATING SMS NOTIFICATION ---
+            This is not a real SMS. It is a console log acting as a placeholder.
+            To: Patient's Phone (${request.contactPhone})
+            From: BloodSync System
             Message: A donor (${currentUserData.firstName}, Blood Type: ${currentUserData.bloodType}) has offered to fulfill your request.
-            Donor Contact: ${currentUserData.phoneNumber} / ${currentUserData.email}
-            Please go to "My Requests" in the app to accept and view their full contact details.
+            Please go to "My Requests" in the app to accept and view their contact details.
             --- END SIMULATION ---
         `);
 
