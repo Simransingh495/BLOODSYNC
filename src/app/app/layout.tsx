@@ -10,8 +10,10 @@ import {
   Search,
   User,
   Droplets,
+  Bell,
 } from 'lucide-react';
 import { UserNav } from '@/components/user-nav';
+import { Button } from '@/components/ui/button';
 
 const menuItems = [
   {
