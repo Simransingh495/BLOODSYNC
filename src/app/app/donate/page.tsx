@@ -203,7 +203,7 @@ export default function DonatePage() {
 
       toast({
         title: 'Offer Sent!',
-        description: `The patient has been notified of your offer.`,
+        description: `The patient has been notified of your offer via SMS.`,
       });
     } catch (err) {
       console.error('Error offering donation: ', err);

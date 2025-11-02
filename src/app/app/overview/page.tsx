@@ -76,22 +76,7 @@ export default function OverviewPage() {
     setDonating(request.id);
 
     try {
-      // TODO: This section does not send a real email.
-      // It simulates the action by logging to the console.
-      // To send a real email, you would need to replace the console.log
-      // with a call to a backend function or a third-party email service (e.g., SendGrid, Mailgun).
-      console.log(`
-            --- SIMULATING NOTIFICATION ---
-            This is not a real email. It is a console log acting as a placeholder.
-            To: Patient (${request.userId})
-            From: Donor (${user.uid})
-            Message: A donor (${currentUserData.firstName}, Blood Type: ${currentUserData.bloodType}) has offered to fulfill your request.
-            Donor Contact: ${currentUserData.phoneNumber} / ${currentUserData.email}
-            Please check your email to accept the offer and view their full contact details.
-            --- END SIMULATION ---
-        `);
-
-      // Create a match document so the patient can see the offer
+      // 1. Create a match document so the patient can see the offer
       const matchCollection = collection(firestore, 'donationMatches');
       const newMatch = {
         requestId: request.id,
@@ -107,10 +92,22 @@ export default function OverviewPage() {
       };
 
       await addDoc(matchCollection, newMatch);
+      
+      // 2. Send the SMS notification via our API endpoint
+      const message = `A donor (${currentUserData.firstName}, Blood Type: ${currentUserData.bloodType}) has offered to fulfill your request for ${request.bloodType} blood. Please go to "My Requests" in the app to accept.`;
+      
+      await fetch('/api/send-sms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: request.contactPhone,
+          message: message,
+        }),
+      });
 
       toast({
         title: 'Offer Sent!',
-        description: `The patient has been notified of your offer via email.`,
+        description: `The patient has been notified of your offer via SMS.`,
       });
     } catch (err) {
       console.error('Error offering donation: ', err);
