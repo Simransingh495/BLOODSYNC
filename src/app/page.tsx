@@ -158,10 +158,10 @@ export default function Home() {
                 Our Mission
               </h2>
               <p className="mt-4 text-xl text-muted-foreground">
-                To create a world where no one suffers due to a shortage of blood. We aim to bridge the gap between donors and recipients through a smart, reliable, and life-saving network.
+                To build a future where every person has access to safe and timely blood transfusions. We are on a relentless mission to eliminate blood shortages by creating an intelligent, compassionate, and interconnected global network of donors and recipients.
               </p>
                <p className="mt-4 text-muted-foreground">
-                BloodSync leverages technology to build a responsive community, ensuring that safe blood is available to anyone in need, anytime, anywhere. We're dedicated to making the process of donation and reception as seamless as possible.
+                BloodSync is more than just an app; it's a movement. We harness the power of AI to not only connect people but to predict needs, optimize supply chains, and foster a culture of giving. Every drop counts, and every connection saves a life.
               </p>
             </div>
           </div>
@@ -172,7 +172,7 @@ export default function Home() {
           <div className="container mx-auto px-4">
             <div className="mx-auto max-w-3xl text-center">
               <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-                How BloodSync Works
+                About Us
               </h2>
               <p className="mt-4 text-lg text-muted-foreground">
                 Our mission is to create a seamless, efficient, and community-driven network to save lives. We believe that technology can solve the critical problem of blood shortages by connecting people in a timely and intelligent manner. Our platform is built on three simple principles.
