@@ -50,7 +50,8 @@ export default function ProfilePage() {
     try {
       await signOut(auth);
       toast({ title: 'Logged out successfully' });
-      router.push('/');
+      // Use window.location.href for a more reliable redirect after sign-out.
+      window.location.href = '/';
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Logout failed', description: error.message });
     }

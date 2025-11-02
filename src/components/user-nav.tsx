@@ -1,3 +1,6 @@
+
+'use client';
+
 import Link from 'next/link';
 import {
   DropdownMenu,
@@ -31,7 +34,8 @@ export function UserNav() {
 
   const handleLogout = async () => {
     await signOut(auth);
-    router.push('/');
+    // Use window.location.href for a more reliable redirect after sign-out.
+    window.location.href = '/';
   };
 
   if (isUserLoading || isUserDataLoading) {
