@@ -62,28 +62,8 @@ export default function RegisterPage() {
   const auth = useAuth();
   const firestore = useFirestore();
   const [isLoading, setIsLoading] = useState(false);
+  const [isLocationLoading, setIsLocationLoading] = useState(false);
   const [userCoords, setUserCoords] = useState<{ lat: number, lng: number} | null>(null);
-
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setUserCoords({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          });
-        },
-        (err) => {
-          console.error("Could not get location:", err.message);
-          toast({
-            variant: 'destructive',
-            title: 'Location Error',
-            description: "Could not get your location. Please enter it manually.",
-          });
-        }
-      );
-    }
-  }, [toast]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -96,6 +76,51 @@ export default function RegisterPage() {
       location: '',
     },
   });
+
+  useEffect(() => {
+    if (navigator.geolocation) {
+      setIsLocationLoading(true);
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          try {
+            const { latitude, longitude } = position.coords;
+            setUserCoords({
+              lat: latitude,
+              lng: longitude,
+            });
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+            );
+            const data = await response.json();
+             if (data.address) {
+              const locationString = `${data.address.city || data.address.town || ''}, ${data.address.state || ''}`;
+              if (locationString.length > 2) {
+                form.setValue('location', locationString);
+              }
+            }
+          } catch (err) {
+             console.error("Could not fetch location name:", err);
+             toast({
+                variant: 'destructive',
+                title: 'Could not fetch location name',
+                description: "Please enter your location manually.",
+              });
+          } finally {
+            setIsLocationLoading(false);
+          }
+        },
+        (err) => {
+          console.error("Could not get location:", err.message);
+          toast({
+            variant: 'destructive',
+            title: 'Location Error',
+            description: "Could not get your location. Please enter it manually.",
+          });
+          setIsLocationLoading(false);
+        }
+      );
+    }
+  }, [form, toast]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!auth || !firestore) return;
@@ -219,7 +244,10 @@ export default function RegisterPage() {
                   <FormItem>
                     <FormLabel>City, State</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., San Francisco, CA" {...field} />
+                      <div className="relative">
+                        <Input placeholder="e.g., San Francisco, CA" {...field} />
+                        {isLocationLoading && <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />}
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -252,8 +280,8 @@ export default function RegisterPage() {
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            <Button type="submit" className="w-full" disabled={isLoading || isLocationLoading}>
+              {(isLoading || isLocationLoading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Create Account
             </Button>
           </form>
