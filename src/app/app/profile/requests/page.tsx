@@ -45,6 +45,15 @@ import {
 } from '@/components/ui/accordion';
 import { format } from 'date-fns';
 
+async function sendEmailNotification(to: string, subject: string, html: string) {
+    const response = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ to, subject, html }),
+    });
+    return response;
+}
+
 export default function MyRequestsPage() {
   const firestore = useFirestore();
   const { user } = useUser();
@@ -93,16 +102,15 @@ export default function MyRequestsPage() {
     const matchRef = doc(firestore, 'donationMatches', match.id);
     const requestRef = doc(firestore, 'bloodRequests', match.requestId);
     const requestDoc = requests?.find((r) => r.id === match.requestId);
-    const notificationCollection = collection(firestore, 'notifications');
 
     try {
       await updateDoc(matchRef, { status: response });
-
+      
+      const notificationCollection = collection(firestore, 'notifications');
+      
       if (response === 'accepted' && requestDoc) {
-        // Update the request status
-        await updateDoc(requestRef, { status: 'Fulfilled' }); 
+        await updateDoc(requestRef, { status: 'Fulfilled' });
 
-        // Create a donation record for history
         const donationCollection = collection(firestore, 'donations');
         const newDonation: Omit<Donation, 'id'> = {
           donorId: match.donorId,
@@ -110,65 +118,50 @@ export default function MyRequestsPage() {
           donorName: match.donorName,
           bloodType: requestDoc.bloodType,
           location: requestDoc.location,
-          donationDate: new Date(), 
+          donationDate: new Date(),
         };
         await addDoc(donationCollection, newDonation);
         
-        // Create notification for the donor
-        const acceptedNotification: Omit<Notification, 'id'> = {
-            userId: match.donorId,
-            message: `Your donation offer for ${requestDoc.bloodType} blood has been accepted! The patient's contact is ${requestDoc.contactPhone} and ${requestDoc.contactEmail}.`,
-            type: 'offer_accepted',
-            relatedId: match.requestId,
-            isRead: false,
-            createdAt: serverTimestamp(),
+        const acceptedInAppNotification: Omit<Notification, 'id'> = {
+          userId: match.donorId,
+          message: `Your donation offer for ${requestDoc.bloodType} blood has been accepted!`,
+          type: 'offer_accepted',
+          relatedId: match.requestId,
+          isRead: false,
+          createdAt: serverTimestamp(),
         };
-        await addDoc(notificationCollection, acceptedNotification);
+        await addDoc(notificationCollection, acceptedInAppNotification);
+
+        const emailHtml = `<h1>Your Offer was Accepted!</h1><p>Your offer to donate ${requestDoc.bloodType} blood has been accepted by ${requestDoc.patientName}.</p><p><b>Patient Contact Email:</b> ${requestDoc.contactEmail}</p><p><b>Patient Contact Phone:</b> ${requestDoc.contactPhone}</p><p>Please coordinate with them directly. Thank you for being a hero!</p>`;
+        await sendEmailNotification(match.donorEmail, 'Your Blood Donation Offer Was Accepted!', emailHtml);
 
         toast({
           title: 'Match Accepted!',
-          description:
-            'The donor has been notified with your contact details.',
+          description: 'The donor has been notified with your contact details via email.',
         });
 
-        // Reject other pending offers for this request and notify them
-        const otherPendingMatches = matches?.filter(
-          (m) =>
-            m.requestId === match.requestId &&
-            m.id !== match.id &&
-            m.status === 'pending'
-        );
+        const otherPendingMatches = matches?.filter(m => m.requestId === match.requestId && m.id !== match.id && m.status === 'pending');
         if (otherPendingMatches) {
           for (const otherMatch of otherPendingMatches) {
-            const otherMatchRef = doc(
-              firestore,
-              'donationMatches',
-              otherMatch.id
-            );
-            await updateDoc(otherMatchRef, { status: 'rejected' });
-            
-            const rejectedNotification: Omit<Notification, 'id'> = {
-                userId: otherMatch.donorId,
-                message: `Your donation offer for request #${match.requestId.substring(0,5)} was not accepted this time. Thank you for your willingness to help.`,
-                type: 'offer_rejected',
-                relatedId: otherMatch.requestId,
-                isRead: false,
-                createdAt: serverTimestamp(),
-            };
-            await addDoc(notificationCollection, rejectedNotification);
+            await updateDoc(doc(firestore, 'donationMatches', otherMatch.id), { status: 'rejected' });
+            const rejectedEmailHtml = `<h1>Donation Offer Update</h1><p>Thank you for offering to donate for the request for ${requestDoc.bloodType} blood. The patient has already found a suitable donor for this request.</p><p>We appreciate your willingness to help and hope you'll consider other requests. Thank you for being a part of BloodSync!</p>`;
+            await sendEmailNotification(otherMatch.donorEmail, "Update on your donation offer", rejectedEmailHtml);
           }
         }
-      } else if (response === 'rejected') {
-         // Create rejection notification
-        const rejectedNotification: Omit<Notification, 'id'> = {
-            userId: match.donorId,
-            message: `Your donation offer for request #${match.requestId.substring(0,5)} was not accepted this time. Thank you for your willingness to help.`,
-            type: 'offer_rejected',
-            relatedId: match.requestId,
-            isRead: false,
-            createdAt: serverTimestamp(),
+
+      } else if (response === 'rejected' && requestDoc) {
+        const rejectedInAppNotification: Omit<Notification, 'id'> = {
+          userId: match.donorId,
+          message: `Your offer for request #${match.requestId.substring(0, 5)} was not accepted this time.`,
+          type: 'offer_rejected',
+          relatedId: match.requestId,
+          isRead: false,
+          createdAt: serverTimestamp(),
         };
-        await addDoc(notificationCollection, rejectedNotification);
+        await addDoc(notificationCollection, rejectedInAppNotification);
+
+        const rejectedEmailHtml = `<h1>Donation Offer Update</h1><p>Thank you for offering to donate for the request for ${requestDoc.bloodType} blood. Your offer was not accepted at this time.</p><p>We appreciate your willingness to help and hope you'll consider other requests. Thank you for being a part of BloodSync!</p>`;
+        await sendEmailNotification(match.donorEmail, "Update on your donation offer", rejectedEmailHtml);
 
         toast({
           title: 'Offer Rejected',

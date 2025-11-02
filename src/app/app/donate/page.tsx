@@ -29,6 +29,16 @@ import * as geofire from 'geofire-common';
 
 type RequestWithDistance = BloodRequest & { distance?: number };
 
+async function sendEmailNotification(to: string, subject: string, html: string) {
+    const response = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ to, subject, html }),
+    });
+    return response;
+}
+
+
 export default function DonatePage() {
   const firestore = useFirestore();
   const { user: currentUser, isUserLoading } = useUser();
@@ -188,7 +198,7 @@ export default function DonatePage() {
       };
       await addDoc(matchCollection, newMatch);
 
-      // 2. Create a notification for the patient
+      // 2. Create an in-app notification for the patient
       const notificationCollection = collection(firestore, 'notifications');
       const newNotification: Omit<Notification, 'id'> = {
         userId: request.userId,
@@ -200,16 +210,24 @@ export default function DonatePage() {
       };
       await addDoc(notificationCollection, newNotification);
 
+      // 3. Send a real email notification
+      const emailHtml = `<h1>New Donation Offer!</h1><p>A donor has offered to help with your blood request.</p><p><b>Donor:</b> ${currentUserData.firstName}</p><p><b>Blood Type:</b> ${currentUserData.bloodType}</p><p>Please log in to your BloodSync account to view the offer and accept it.</p>`;
+      const emailResponse = await sendEmailNotification(request.contactEmail, "You have a new blood donation offer!", emailHtml);
+
+      if (!emailResponse.ok) {
+          throw new Error('Failed to send email notification.');
+      }
+
       toast({
         title: 'Offer Sent!',
-        description: `The patient has been notified of your offer.`,
+        description: `The patient has been notified of your offer via email and in-app message.`,
       });
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error offering donation: ', err);
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'Could not send your donation offer.',
+        description: err.message || 'Could not send your donation offer.',
       });
     } finally {
       setDonating(null);
