@@ -159,8 +159,9 @@ service cloud.firestore {
       // Allow get if the notification's userId matches the requester's UID.
       allow get: if request.auth != null && request.auth.uid == resource.data.userId;
       
-      // Allow list if the query is filtered by the user's UID.
-      allow list: if request.auth != null && request.query.where.size() > 0 && request.query.where.userId == request.auth.uid;
+      // Allow list ONLY if the query is filtered by the authenticated user's ID.
+      // This prevents a user from listing all notifications in the system.
+      allow list: if request.auth != null && request.query.filters.size() > 0 && request.query.filters[0].field == 'userId' && request.query.filters[0].value == request.auth.uid;
 
       // Allow a user to update their own notification (e.g., to mark it as read).
       allow update: if request.auth != null && request.auth.uid == resource.data.userId;
