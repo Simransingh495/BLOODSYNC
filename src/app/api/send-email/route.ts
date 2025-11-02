@@ -8,20 +8,21 @@ const sendEmailSchema = z.object({
   html: z.string(),
 });
 
-// The RESEND_API_KEY is loaded from the .env file.
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export async function POST(request: Request) {
   try {
+    const resendApiKey = process.env.RESEND_API_KEY;
+    if (!resendApiKey) {
+        console.error('API Route Error: RESEND_API_KEY is not configured in .env file.');
+        return NextResponse.json({ error: 'Server is not configured for sending emails.' }, { status: 500 });
+    }
+
+    const resend = new Resend(resendApiKey);
+
     const body = await request.json();
     const validation = sendEmailSchema.safeParse(body);
 
     if (!validation.success) {
       return NextResponse.json({ error: 'Invalid input.', details: validation.error.flatten() }, { status: 400 });
-    }
-    
-    if (!process.env.RESEND_API_KEY) {
-        throw new Error('RESEND_API_KEY is not configured in .env file.');
     }
 
     const { to, subject, html } = validation.data;
