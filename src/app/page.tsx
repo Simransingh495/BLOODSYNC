@@ -22,15 +22,6 @@ export default function Home() {
   const communityImage = PlaceHolderImages.find(
     (img) => img.id === 'community-image'
   );
-  const testimonial1 = PlaceHolderImages.find(
-    (img) => img.id === 'testimonial-1'
-  );
-  const testimonial2 = PlaceHolderImages.find(
-    (img) => img.id === 'testimonial-2'
-  );
-  const testimonial3 = PlaceHolderImages.find(
-    (img) => img.id === 'testimonial-3'
-  );
 
   const stats = [
     {
@@ -95,30 +86,6 @@ export default function Home() {
       title: 'Urgent Request Broadcasting',
       description:
         'In an emergency, post an urgent blood request and have it instantly broadcast to all suitable donors nearby. This powerful feature maximizes the chances of a quick response from our community of heroes.',
-    },
-  ];
-
-  const testimonials = [
-    {
-      name: 'Priya Sharma',
-      role: 'Donor',
-      quote:
-        'BloodSync made it so easy to find a donation opportunity near me. Knowing I could help someone in my own community was incredibly rewarding.',
-      image: testimonial1,
-    },
-    {
-      name: 'Aarav Desai',
-      role: 'Recipient',
-      quote:
-        "When my family needed blood urgently, BloodSync was a miracle. We found a matching donor within hours. I'm forever grateful.",
-      image: testimonial2,
-    },
-    {
-      name: 'Dr. Anjali Mehta',
-      role: 'Doctor',
-      quote:
-        'This platform is a game-changer for hospitals. It streamlines the process of finding donors, which is critical in emergency situations.',
-      image: testimonial3,
     },
   ];
 
@@ -275,42 +242,6 @@ export default function Home() {
           </div>
         </section>
         
-        {/* Stories Section */}
-        <section className="bg-secondary/50 py-16 sm:py-24">
-          <div className="container mx-auto px-4">
-            <div className="mx-auto max-w-3xl text-center">
-              <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-                Stories From Our Community
-              </h2>
-              <p className="mt-4 text-lg text-muted-foreground">
-                Real stories from donors, recipients, and medical staff who have used BloodSync to save lives.
-              </p>
-            </div>
-            <div className="mt-16 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-              {testimonials.map((testimonial) => (
-                <Card key={testimonial.name} className="flex flex-col items-center text-center">
-                  <CardContent className="p-6">
-                    {testimonial.image && (
-                       <Image
-                        src={testimonial.image.imageUrl}
-                        alt={`Photo of ${testimonial.name}`}
-                        width={100}
-                        height={100}
-                        className="mx-auto mb-4 h-24 w-24 rounded-full object-cover"
-                        data-ai-hint={testimonial.image.imageHint}
-                      />
-                    )}
-                    <p className="text-base text-muted-foreground">"{testimonial.quote}"</p>
-                    <div className="mt-4">
-                      <p className="font-semibold text-foreground">{testimonial.name}</p>
-                      <p className="text-sm text-primary">{testimonial.role}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </section>
 
         {/* Join Community Section */}
         <section className="relative bg-primary/5 py-16 sm:py-24">
