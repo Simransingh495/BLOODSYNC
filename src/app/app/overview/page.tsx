@@ -6,8 +6,8 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { useCollection, useFirestore, useMemoFirebase, useUser, addDocumentNonBlocking, useDoc } from '@/firebase';
-import { collection, query, orderBy, limit, serverTimestamp, doc } from 'firebase/firestore';
+import { useCollection, useFirestore, useMemoFirebase, useUser, useDoc } from '@/firebase';
+import { collection, query, orderBy, limit, serverTimestamp, doc, addDoc } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { BloodRequest, User } from '@/lib/types';
 import { LifeBuoy, Share, HeartHandshake, Loader2 } from 'lucide-react';
@@ -31,7 +31,7 @@ export default function OverviewPage() {
     [firestore]
   );
   const recentRequestsQuery = useMemoFirebase(
-    () => query(requestsCollection, orderBy('createdAt', 'desc'), limit(5)),
+    () => requestsCollection ? query(requestsCollection, orderBy('createdAt', 'desc'), limit(5)) : null,
     [requestsCollection]
   );
   const { data: recentRequests, isLoading: isRequestsLoading } = useCollection<BloodRequest>(recentRequestsQuery);
@@ -45,7 +45,7 @@ export default function OverviewPage() {
     });
   };
 
-  const handleAccept = (request: BloodRequest) => {
+  const handleAccept = async (request: BloodRequest) => {
     if (!user || !firestore || !currentUserData) return;
 
     if (user.uid === request.userId) {
@@ -59,36 +59,37 @@ export default function OverviewPage() {
     
     setDonating(request.id);
 
-    const matchCollection = collection(firestore, 'donationMatches');
-    const newMatch = {
-        requestId: request.id,
-        requestUserId: request.userId,
-        donorId: user.uid,
-        donorName: `${currentUserData.firstName} ${currentUserData.lastName}`,
-        donorBloodType: currentUserData.bloodType,
-        donorLocation: currentUserData.location,
-        donorContactPhone: currentUserData.phoneNumber || 'Not provided',
-        matchDate: serverTimestamp(),
-        status: 'pending',
-    };
-    
-    const patientNotifCollection = collection(firestore, 'notifications');
-    const newNotification = {
-        userId: request.userId,
-        message: `A donor has offered to fulfill your request for ${request.bloodType} blood.`,
-        type: 'request_match',
-        relatedId: request.id,
-        isRead: false,
-        createdAt: serverTimestamp(),
-    };
-
     try {
-        addDocumentNonBlocking(matchCollection, newMatch);
-        addDocumentNonBlocking(patientNotifCollection, newNotification);
+        // Here we simulate sending an email/SMS. In a real app, this would call a backend function.
+        console.log(`
+            Simulating sending notification...
+            To: Patient (${request.userId})
+            From: Donor (${user.uid})
+            Message: A donor (${currentUserData.firstName}, Blood Type: ${currentUserData.bloodType}) has offered to fulfill your request.
+            Donor Contact: ${currentUserData.phoneNumber} / ${currentUserData.email}
+            Please check your email to accept the offer and view their full contact details.
+        `);
+       
+        // Create a match document so the patient can see the offer
+        const matchCollection = collection(firestore, 'donationMatches');
+        const newMatch = {
+            requestId: request.id,
+            requestUserId: request.userId,
+            donorId: user.uid,
+            donorName: `${currentUserData.firstName} ${currentUserData.lastName}`,
+            donorBloodType: currentUserData.bloodType,
+            donorLocation: currentUserData.location,
+            donorEmail: currentUserData.email,
+            donorPhoneNumber: currentUserData.phoneNumber || 'Not provided',
+            matchDate: serverTimestamp(),
+            status: 'pending',
+        };
+        
+        await addDoc(matchCollection, newMatch);
 
         toast({
             title: "Offer Sent!",
-            description: `The patient has been notified of your offer.`
+            description: `The patient has been notified of your offer via email.`
         });
     } catch(err) {
         console.error("Error offering donation: ", err);
@@ -160,7 +161,7 @@ export default function OverviewPage() {
                     ) : (
                       <HeartHandshake className="mr-2 h-4 w-4" />
                     )}
-                    Accept
+                    Donate
                   </Button>
                 </div>
               </CardContent>

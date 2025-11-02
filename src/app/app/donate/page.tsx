@@ -7,8 +7,8 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { useCollection, useFirestore, useMemoFirebase, useUser, addDocumentNonBlocking, useDoc } from '@/firebase';
-import { collection, query, orderBy, where, getDocs, startAt, endAt, serverTimestamp, doc } from 'firebase/firestore';
+import { useFirestore, useMemoFirebase, useUser, useDoc } from '@/firebase';
+import { collection, query, getDocs, startAt, endAt, serverTimestamp, doc, updateDoc, where } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { BloodRequest, User } from '@/lib/types';
 import { HeartHandshake, LifeBuoy, Loader2, MapPin } from 'lucide-react';
@@ -38,6 +38,7 @@ export default function DonatePage() {
 
 
   useEffect(() => {
+    // This effect runs only on the client, preventing a hydration mismatch.
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -50,13 +51,14 @@ export default function DonatePage() {
         (err) => {
           setLocationError(`Error: ${err.message}`);
           toast({ variant: 'destructive', title: "Location Error", description: "Could not get location. Showing all requests." });
-          fetchRequests();
+          fetchRequests(); // Fetch all requests if location fails
         }
       );
     } else {
       setLocationError('Geolocation is not supported by this browser.');
-      fetchRequests();
+      fetchRequests(); // Fetch all requests if geolocation is not supported
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [toast]);
   
   const fetchRequests = async (center?: geofire.Geopoint) => {
@@ -74,9 +76,8 @@ export default function DonatePage() {
             const q = query(
               requestsCollection,
               where('status', '==', 'Pending'),
-              orderBy('geohash'),
-              startAt(b[0]),
-              endAt(b[1])
+              where('geohash', '>=', b[0]),
+              where('geohash', '<=', b[1])
             );
             promises.push(getDocs(q));
           }
@@ -131,40 +132,42 @@ export default function DonatePage() {
     } else if (locationError) { 
         fetchRequests();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location, firestore, locationError, isUserLoading, currentUser]);
 
 
-  const handleOfferDonation = (request: BloodRequest) => {
+  const handleOfferDonation = async (request: BloodRequest) => {
     if (!currentUser || !firestore || !currentUserData) return;
     
     setDonating(request.id);
 
-    const matchCollection = collection(firestore, 'donationMatches');
-    const newMatch = {
-        requestId: request.id,
-        requestUserId: request.userId,
-        donorId: currentUser.uid,
-        donorName: `${currentUserData.firstName} ${currentUserData.lastName}`,
-        donorBloodType: currentUserData.bloodType,
-        donorLocation: currentUserData.location,
-        donorContactPhone: currentUserData.phoneNumber || 'Not provided',
-        matchDate: serverTimestamp(),
-        status: 'pending',
-    };
-    
-    const patientNotifCollection = collection(firestore, 'notifications');
-    const newNotification = {
-        userId: request.userId,
-        message: `A donor has offered to fulfill your request for ${request.bloodType} blood.`,
-        type: 'request_match',
-        relatedId: request.id,
-        isRead: false,
-        createdAt: serverTimestamp(),
-    };
-
     try {
-        addDocumentNonBlocking(matchCollection, newMatch);
-        addDocumentNonBlocking(patientNotifCollection, newNotification);
+        // Here we simulate sending an email/SMS. In a real app, this would call a backend function.
+        console.log(`
+            Simulating sending notification...
+            To: Patient (${request.userId})
+            From: Donor (${currentUser.uid})
+            Message: A donor (${currentUserData.firstName}, Blood Type: ${currentUserData.bloodType}) has offered to fulfill your request.
+            Donor Contact: ${currentUserData.phoneNumber} / ${currentUserData.email}
+            Please go to "My Requests" in the app to accept and view their full contact details.
+        `);
+       
+        // Create a match document so the patient can see the offer
+        const matchCollection = collection(firestore, 'donationMatches');
+        const newMatch = {
+            requestId: request.id,
+            requestUserId: request.userId,
+            donorId: currentUser.uid,
+            donorName: `${currentUserData.firstName} ${currentUserData.lastName}`,
+            donorBloodType: currentUserData.bloodType,
+            donorLocation: currentUserData.location,
+            donorEmail: currentUserData.email,
+            donorPhoneNumber: currentUserData.phoneNumber || 'Not provided',
+            matchDate: serverTimestamp(),
+            status: 'pending',
+        };
+        
+        await addDoc(matchCollection, newMatch);
 
         toast({
             title: "Offer Sent!",

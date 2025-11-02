@@ -67,6 +67,11 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isLocationLoading, setIsLocationLoading] = useState(false);
   const [userCoords, setUserCoords] = useState<{ lat: number, lng: number} | null>(null);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -82,50 +87,51 @@ export default function RegisterPage() {
   });
   
   useEffect(() => {
-    // This effect runs only on the client, preventing a hydration mismatch.
-    if (navigator.geolocation) {
-      setIsLocationLoading(true);
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          try {
-            const { latitude, longitude } = position.coords;
-            setUserCoords({
-              lat: latitude,
-              lng: longitude,
-            });
-            const response = await fetch(
-              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
-            );
-            const data = await response.json();
-             if (data.address) {
-              const locationString = `${data.address.city || data.address.town || ''}, ${data.address.state || ''}`;
-              if (locationString.length > 2) {
-                form.setValue('location', locationString);
-              }
-            }
-          } catch (err) {
-             console.error("Could not fetch location name:", err);
-             toast({
-                variant: 'destructive',
-                title: 'Could not fetch location name',
-                description: "Please enter your location manually.",
+    if (isClient) {
+      if (navigator.geolocation) {
+        setIsLocationLoading(true);
+        navigator.geolocation.getCurrentPosition(
+          async (position) => {
+            try {
+              const { latitude, longitude } = position.coords;
+              setUserCoords({
+                lat: latitude,
+                lng: longitude,
               });
-          } finally {
+              const response = await fetch(
+                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+              );
+              const data = await response.json();
+               if (data.address) {
+                const locationString = `${data.address.city || data.address.town || ''}, ${data.address.state || ''}`;
+                if (locationString.length > 2) {
+                  form.setValue('location', locationString);
+                }
+              }
+            } catch (err) {
+               console.error("Could not fetch location name:", err);
+               toast({
+                  variant: 'destructive',
+                  title: 'Could not fetch location name',
+                  description: "Please enter your location manually.",
+                });
+            } finally {
+              setIsLocationLoading(false);
+            }
+          },
+          (err) => {
+            console.error("Could not get location:", err.message);
+            toast({
+              variant: 'destructive',
+              title: 'Location Error',
+              description: "Could not get your location. Please enter it manually.",
+            });
             setIsLocationLoading(false);
           }
-        },
-        (err) => {
-          console.error("Could not get location:", err.message);
-          toast({
-            variant: 'destructive',
-            title: 'Location Error',
-            description: "Could not get your location. Please enter it manually.",
-          });
-          setIsLocationLoading(false);
-        }
-      );
+        );
+      }
     }
-  }, [form, toast]);
+  }, [isClient, form, toast]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!auth || !firestore) return;
@@ -265,7 +271,7 @@ export default function RegisterPage() {
                     <FormControl>
                       <div className="relative">
                         <Input placeholder="e.g., San Francisco, CA" {...field} />
-                        {isLocationLoading && <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />}
+                        {isClient && isLocationLoading && <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />}
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -299,7 +305,7 @@ export default function RegisterPage() {
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full" disabled={isLoading || isLocationLoading}>
+            <Button type="submit" className="w-full" disabled={isLoading || (isClient && isLocationLoading)}>
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Create Account
             </Button>

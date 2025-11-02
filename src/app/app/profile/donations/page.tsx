@@ -12,7 +12,7 @@ import { collection, query, where, orderBy } from 'firebase/firestore';
 import type { Donation } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { HandHeart, Droplets } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { format } from 'date-fns';
 
 export default function DonationHistoryPage() {
   const firestore = useFirestore();
@@ -57,9 +57,9 @@ export default function DonationHistoryPage() {
                         <div key={donation.id} className="flex items-center gap-4 rounded-lg border p-4">
                             <Droplets className="h-8 w-8 text-primary" />
                             <div className="flex-1">
-                                <p className="font-semibold">Donation to {donation.location}</p>
+                                <p className="font-semibold">Donation to fulfill request at {donation.location}</p>
                                 <p className="text-sm text-muted-foreground">
-                                    {donation.donationDate.toDate().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                                    {format(donation.donationDate.toDate(), 'PPP')}
                                 </p>
                             </div>
                         </div>

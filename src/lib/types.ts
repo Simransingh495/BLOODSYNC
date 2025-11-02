@@ -30,11 +30,12 @@ export type BloodRequest = {
   lat?: number;
   lng?: number;
   urgency: 'Low' | 'Medium' | 'High';
-  status: 'Pending' | 'Matched' | 'Fulfilled' | 'Cancelled';
+  status: 'Pending' | 'Fulfilled' | 'Cancelled';
   createdAt: Timestamp;
   notes?: string;
   contactPerson: string;
   contactPhone: string;
+  contactEmail: string;
 };
 
 export type DonationMatch = {
@@ -45,9 +46,10 @@ export type DonationMatch = {
     donorName: string;
     donorLocation: string;
     donorBloodType: string;
-    donorContactPhone: string;
+    donorEmail: string;
+    donorPhoneNumber: string;
     matchDate: Timestamp;
-    status: 'pending' | 'accepted' | 'rejected' | 'completed';
+    status: 'pending' | 'accepted' | 'rejected';
 };
 
 export type Notification = {
@@ -68,7 +70,7 @@ export type Donation = {
   donorName: string;
   bloodType: string;
   location: string;
-  donationDate: Timestamp;
+  donationDate: Date;
 };
 
 

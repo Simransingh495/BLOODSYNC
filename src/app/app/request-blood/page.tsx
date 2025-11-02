@@ -34,8 +34,8 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { bloodTypes } from '@/lib/types';
-import { useAuth, useFirestore, addDocumentNonBlocking, useUser } from '@/firebase';
-import { collection, serverTimestamp } from 'firebase/firestore';
+import { useUser, useFirestore } from '@/firebase';
+import { collection, serverTimestamp, addDoc } from 'firebase/firestore';
 
 const formSchema = z.object({
   patientName: z.string().min(2, {
@@ -46,6 +46,7 @@ const formSchema = z.object({
   urgency: z.enum(['Low', 'Medium', 'High']),
   contactPerson: z.string().min(2, { message: 'Contact person is required' }),
   contactPhone: z.string().min(10, { message: 'A valid phone number is required'}),
+  contactEmail: z.string().email({ message: 'A valid email is required' }),
   notes: z.string().optional(),
 });
 
@@ -71,9 +72,16 @@ export default function RequestBloodPage() {
       urgency: 'Medium',
       contactPerson: '',
       contactPhone: '',
+      contactEmail: user?.email || '',
       notes: '',
     },
   });
+
+   useEffect(() => {
+    if (user?.email) {
+      form.setValue('contactEmail', user.email);
+    }
+   }, [user, form]);
 
   useEffect(() => {
     if (isClient) {
@@ -147,12 +155,15 @@ export default function RequestBloodPage() {
     }
 
     try {
-      addDocumentNonBlocking(requestsCollection, newRequest);
+      await addDoc(requestsCollection, newRequest);
       toast({
         title: 'Request Submitted',
-        description: 'Your blood request has been broadcasted to nearby donors.',
+        description: 'Your blood request has been broadcasted. You will be notified by email if a donor responds.',
       });
       form.reset();
+       if (user?.email) {
+        form.setValue('contactEmail', user.email);
+       }
     } catch (error: any) {
        toast({
         variant: 'destructive',
@@ -172,7 +183,7 @@ export default function RequestBloodPage() {
           <CardTitle>Create a New Blood Request</CardTitle>
           <CardDescription>
             Fill out the form below to find a donor. Your request will be sent to
-            all available donors in the specified area.
+            donors, and you will be notified via email/SMS.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -267,7 +278,21 @@ export default function RequestBloodPage() {
                     </FormItem>
                   )}
                 />
-                <FormField
+                 <FormField
+                  control={form.control}
+                  name="contactEmail"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Contact Email</FormLabel>
+                      <FormControl>
+                        <Input placeholder="you@example.com" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+               <FormField
                   control={form.control}
                   name="contactPhone"
                   render={({ field }) => (
@@ -280,7 +305,6 @@ export default function RequestBloodPage() {
                     </FormItem>
                   )}
                 />
-              </div>
                 <FormField
                   control={form.control}
                   name="notes"

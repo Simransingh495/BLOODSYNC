@@ -8,11 +8,11 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { useCollection, useFirestore, useUser, useMemoFirebase, addDocumentNonBlocking } from '@/firebase';
-import { collection, query, where, orderBy, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
-import type { BloodRequest, DonationMatch } from '@/lib/types';
+import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
+import { collection, query, where, orderBy, doc, updateDoc, addDoc } from 'firebase/firestore';
+import type { BloodRequest, DonationMatch, Donation } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ClipboardList, Loader2, UserCheck, UserX, Phone } from 'lucide-react';
+import { ClipboardList, Loader2, UserCheck, UserX, Phone, Mail } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -22,6 +22,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { format } from 'date-fns';
 
 
 export default function MyRequestsPage() {
@@ -58,29 +59,38 @@ export default function MyRequestsPage() {
       const matchRef = doc(firestore, 'donationMatches', match.id);
       const requestRef = doc(firestore, 'bloodRequests', match.requestId);
       const requestDoc = requests?.find(r => r.id === match.requestId);
-      const donorNotifCollection = collection(firestore, 'notifications');
       
       try {
         await updateDoc(matchRef, { status: response });
 
         if (response === 'accepted' && requestDoc) {
           // Update the request status
-          await updateDoc(requestRef, { status: 'Matched' });
+          await updateDoc(requestRef, { status: 'Fulfilled' }); // Mark as Fulfilled
 
-          // Notify the donor
-          const newNotification = {
-              userId: match.donorId,
-              message: `Your offer for ${requestDoc.bloodType} blood has been accepted! Please contact the patient at: ${requestDoc.contactPhone}.`,
-              type: 'offer_accepted',
-              relatedId: match.requestId,
-              isRead: false,
-              createdAt: serverTimestamp(),
+          // Create a donation record for history
+          const donationCollection = collection(firestore, 'donations');
+          const newDonation: Omit<Donation, 'id'> = {
+            donorId: match.donorId,
+            requestId: match.requestId,
+            donorName: match.donorName,
+            bloodType: requestDoc.bloodType,
+            location: requestDoc.location,
+            donationDate: new Date(), // Use current date for the donation
           };
-          addDocumentNonBlocking(donorNotifCollection, newNotification);
-          
-          toast({ title: "Match Accepted!", description: "The donor has been notified with your contact details." });
+          await addDoc(donationCollection, newDonation);
 
-          // Optional: Reject other pending offers for this request
+          // Simulate sending an email to the donor
+          console.log(`
+            Simulating sending acceptance email...
+            To: Donor (${match.donorEmail})
+            From: Patient (${user.email})
+            Message: Your donation offer for ${requestDoc.bloodType} blood has been accepted! 
+            Please contact the patient at ${requestDoc.contactPhone} or ${requestDoc.contactEmail}.
+          `);
+          
+          toast({ title: "Match Accepted!", description: "The donor has been notified with your contact details via email." });
+
+          // Reject other pending offers for this request
           const otherPendingMatches = matches?.filter(m => m.requestId === match.requestId && m.id !== match.id && m.status === 'pending');
           if (otherPendingMatches) {
             for(const otherMatch of otherPendingMatches) {
@@ -90,16 +100,12 @@ export default function MyRequestsPage() {
           }
 
         } else if (response === 'rejected') {
-          // Notify the donor that the offer was rejected
-           const newNotification = {
-              userId: match.donorId,
-              message: `Your donation offer for request #${match.requestId.substring(0,5)} was not accepted.`,
-              type: 'offer_rejected',
-              relatedId: match.requestId,
-              isRead: false,
-              createdAt: serverTimestamp(),
-          };
-          addDocumentNonBlocking(donorNotifCollection, newNotification);
+          // Simulate sending a rejection email
+          console.log(`
+            Simulating sending rejection email...
+            To: Donor (${match.donorEmail})
+            Message: Your donation offer for request #${match.requestId.substring(0,5)} was not accepted this time. Thank you for your willingness to help.
+          `);
           toast({ title: "Offer Rejected", description: "The offer has been declined."});
         }
       } catch (err: any) {
@@ -142,7 +148,7 @@ export default function MyRequestsPage() {
                       return (
                         <AccordionItem value={request.id} key={request.id} className="border-b-0">
                            <Card className="overflow-hidden">
-                              <AccordionTrigger className="p-4 hover:no-underline data-[state=open]:bg-primary/5">
+                              <AccordionTrigger className="p-4 hover:no-underline data-[state=open]:bg-primary/5 data-[state=open]:border-b" disabled={request.status === 'Fulfilled'}>
                                 <div className="flex items-center gap-4 text-left w-full">
                                   <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
                                       <span className="font-bold text-xl text-primary">{request.bloodType}</span>
@@ -150,25 +156,33 @@ export default function MyRequestsPage() {
                                   <div className="flex-1">
                                       <p className="font-semibold">Request at {request.location}</p>
                                       <p className="text-sm text-muted-foreground">
-                                          {request.createdAt.toDate().toLocaleDateString()}
-                                          <Badge variant={request.status === 'Matched' ? 'default' : 'secondary'} className={`ml-2 ${request.status === 'Matched' ? 'bg-green-600' : ''}`}>{request.status}</Badge>
+                                          {format(request.createdAt.toDate(), 'PPP')}
+                                          <Badge variant={request.status === 'Fulfilled' ? 'default' : 'secondary'} className={`ml-2 ${request.status === 'Fulfilled' ? 'bg-green-600' : ''}`}>{request.status}</Badge>
                                       </p>
                                   </div>
                                 </div>
                               </AccordionTrigger>
-                              <AccordionContent className="p-4 border-t">
+                              <AccordionContent className="p-4">
                                 {acceptedOffer ? (
                                   <div>
                                     <h4 className="font-semibold mb-2 text-green-600">Donor Confirmed!</h4>
                                      <div className="rounded-md border p-3 bg-green-50">
                                           <p className="font-semibold">{acceptedOffer.donorName}</p>
                                           <p className="text-sm text-muted-foreground">Blood Type: {acceptedOffer.donorBloodType}</p>
-                                          <p className="text-sm text-muted-foreground flex items-center gap-2 mt-1">
-                                             <Phone className="h-4 w-4" /> 
-                                             <a href={`tel:${acceptedOffer.donorContactPhone}`} className="hover:underline">{acceptedOffer.donorContactPhone}</a>
-                                          </p>
+                                          <div className="text-sm text-muted-foreground flex flex-col gap-2 mt-2">
+                                            <a href={`tel:${acceptedOffer.donorPhoneNumber}`} className="flex items-center gap-2 hover:underline">
+                                              <Phone className="h-4 w-4" /> 
+                                              {acceptedOffer.donorPhoneNumber}
+                                            </a>
+                                            <a href={`mailto:${acceptedOffer.donorEmail}`} className="flex items-center gap-2 hover:underline">
+                                              <Mail className="h-4 w-4" /> 
+                                              {acceptedOffer.donorEmail}
+                                            </a>
+                                          </div>
                                       </div>
                                   </div>
+                                ) : request.status === 'Fulfilled' ? (
+                                  <p className="text-sm text-muted-foreground">This request has been fulfilled.</p>
                                 ) : (
                                 <>
                                   <h4 className="font-semibold mb-2">Pending Donor Offers ({pendingOffers.length})</h4>
