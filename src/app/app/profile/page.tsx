@@ -110,10 +110,10 @@ export default function ProfilePage() {
   ];
 
   const menuItems = [
-    { label: 'Edit Profile', icon: UserIcon, href: '#' },
-    { label: 'Donation History', icon: List, href: '#' },
-    { label: 'Set Timer', icon: Timer, href: '#' },
-    { label: 'Settings', icon: Settings, href: '#' },
+    { label: 'Edit Profile', icon: UserIcon, href: '/app/profile/edit' },
+    { label: 'Donation History', icon: List, href: '/app/profile/donations' },
+    { label: 'Set Timer', icon: Timer, href: '/app/profile/reminder' },
+    { label: 'Settings', icon: Settings, href: '/app/profile/settings' },
   ];
 
   return (
@@ -138,12 +138,6 @@ export default function ProfilePage() {
                   </AvatarFallback>
                 </Avatar>
                 <h3 className="mt-4 text-xl font-bold">{currentUser.firstName} {currentUser.lastName}</h3>
-                <div className="mt-4 flex w-full gap-2">
-                  <Button className="flex-1 rounded-full">Call Now</Button>
-                  <Button variant="secondary" className="flex-1 rounded-full">
-                    Request
-                  </Button>
-                </div>
               </div>
             </CardContent>
           </Card>
