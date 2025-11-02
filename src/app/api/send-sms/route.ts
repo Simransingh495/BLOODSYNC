@@ -1,6 +1,5 @@
 // This is a Next.js API Route, which runs on the server.
 // It is a secure place to handle secrets like API keys.
-import 'dotenv/config';
 import {NextRequest, NextResponse} from 'next/server';
 import twilio from 'twilio';
 
