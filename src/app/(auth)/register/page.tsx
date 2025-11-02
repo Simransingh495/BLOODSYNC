@@ -83,8 +83,8 @@ export default function RegisterPage() {
   
   useEffect(() => {
     // This entire block only runs on the client.
-    setIsLocationLoading(true);
     if (navigator.geolocation) {
+      setIsLocationLoading(true);
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           try {
@@ -124,8 +124,6 @@ export default function RegisterPage() {
           setIsLocationLoading(false);
         }
       );
-    } else {
-        setIsLocationLoading(false);
     }
   }, [form, toast]);
 
@@ -317,3 +315,5 @@ export default function RegisterPage() {
     </Card>
   );
 }
+
+    

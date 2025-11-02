@@ -97,16 +97,17 @@ service cloud.firestore {
     match /donationMatches/{donationMatchId} {
 
       function isRequestOwner() {
-        // Use `resource` for existing doc, `request.resource` for incoming doc
-        let requestId = request.resource.data.requestId;
-        let requestDoc = get(/databases/$(database)/documents/bloodRequests/$(requestId));
+        // Use `get()` to check the related blood request document
+        let requestDoc = get(/databases/$(database)/documents/bloodRequests/$(request.resource.data.requestId));
         return request.auth.uid == requestDoc.data.userId;
       }
 
       function isDonor() {
-        return request.auth.uid == request.resource.data.donorId;
+        // For updates, check the existing resource's donorId
+        // For creates, check the incoming request resource's donorId
+        return request.auth.uid == resource.data.donorId || request.auth.uid == request.resource.data.donorId;
       }
-      
+
       // Allow any authenticated user to create a donation match.
       allow create: if request.auth != null;
 
@@ -114,7 +115,6 @@ service cloud.firestore {
       allow get, list: if request.auth != null;
 
       // Allow only the involved parties to update the match (e.g., to accept/reject).
-      // This needs to check against the incoming data for security.
       allow update: if isRequestOwner() || isDonor();
 
       // Prevent deletion of donation matches.
@@ -138,7 +138,7 @@ service cloud.firestore {
       allow get: if request.auth.uid == resource.data.donorId;
 
       // Allow authenticated users to list ONLY their own donations.
-      // The client query MUST filter by donorId for this to be allowed.
+      // This rule requires the client query to include a `where('donorId', '==', request.auth.uid)` filter.
       allow list: if request.auth != null && request.query.get("donorId") == request.auth.uid;
 
       // Prevent updates and deletions to maintain data integrity.
@@ -161,9 +161,9 @@ service cloud.firestore {
       // A user can read a single notification if they are the recipient.
       allow get: if request.auth.uid == resource.data.userId;
       
-      // A user can query notifications only if they are querying for their own userId.
-      // This requires the client query to include a `where('userId', '==', request.auth.uid)` filter.
-      allow list: if request.auth != null && request.query.get('userId') == request.auth.uid;
+      // A user can query notifications only if their query is filtered by their own userId.
+      // This prevents listing all notifications in the system.
+      allow list: if request.auth != null && request.query.where.get('userId', ['==', request.auth.uid]).size() == 1;
 
       // Allow a user to update their own notification (e.g., to mark it as read).
       allow update: if request.auth.uid == resource.data.userId;
@@ -173,3 +173,5 @@ service cloud.firestore {
     }
   }
 }
+
+    
