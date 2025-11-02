@@ -8,7 +8,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, doc, updateDoc } from 'firebase/firestore';
+import { collection, query, orderBy, doc, updateDoc, where } from 'firebase/firestore';
 import type { Notification } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BellRing, BellOff } from 'lucide-react';
@@ -20,7 +20,7 @@ export default function NotificationsPage() {
   const { user } = useUser();
 
   const notificationsQuery = useMemoFirebase(
-    () => user ? query(collection(firestore, 'users', user.uid, 'notifications'), orderBy('createdAt', 'desc')) : null,
+    () => user ? query(collection(firestore, 'notifications'), where('userId', '==', user.uid), orderBy('createdAt', 'desc')) : null,
     [firestore, user]
   );
   
@@ -28,7 +28,7 @@ export default function NotificationsPage() {
 
   const handleMarkAsRead = async (notificationId: string) => {
     if (!user) return;
-    const notifRef = doc(firestore, 'users', user.uid, 'notifications', notificationId);
+    const notifRef = doc(firestore, 'notifications', notificationId);
     await updateDoc(notifRef, { isRead: true });
   }
 

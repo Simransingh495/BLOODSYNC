@@ -145,7 +145,7 @@ export default function DonatePage() {
     };
     
     // 2. Create a notification for the patient
-    const patientNotifCollection = collection(firestore, 'users', request.userId, 'notifications');
+    const patientNotifCollection = collection(firestore, 'notifications');
     const newNotification = {
         userId: request.userId,
         message: `A donor has offered to fulfill your request for ${request.bloodType} blood.`,

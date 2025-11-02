@@ -65,7 +65,7 @@ export default function OverviewPage() {
         status: 'pending',
     };
     
-    const patientNotifCollection = collection(firestore, 'users', request.userId, 'notifications');
+    const patientNotifCollection = collection(firestore, 'notifications');
     const newNotification = {
         userId: request.userId,
         message: `A donor has offered to fulfill your request for ${request.bloodType} blood.`,

@@ -60,7 +60,7 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
   const { data: userData, isLoading: isUserDataLoading } = useDoc(userDocRef);
 
   const notificationsQuery = useMemoFirebase(
-    () => user ? query(collection(firestore, 'users', user.uid, 'notifications'), where('isRead', '==', false)) : null,
+    () => user ? query(collection(firestore, 'notifications'), where('userId', '==', user.uid), where('isRead', '==', false)) : null,
     [firestore, user]
   );
   const { data: unreadNotifications } = useCollection(notificationsQuery);

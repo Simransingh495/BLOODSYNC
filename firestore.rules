@@ -2,24 +2,21 @@
  * @fileOverview Firestore Security Rules for BloodSync.
  *
  * Core Philosophy:
- * This ruleset enforces a user-ownership model for user profiles and notifications.
+ * This ruleset enforces a user-ownership model for user profiles.
  * Blood requests and donation matches are accessible with certain restrictions based on user roles and relationships.
+ * Notifications are stored in a central collection, but users can only read their own.
  *
  * Data Structure:
  * - /users/{userId}: Stores user profiles. Only the authenticated user can read/write their own profile. Authenticated users can list other users to find donors.
  * - /bloodRequests/{bloodRequestId}: Stores blood requests. Any authenticated user can create or read a blood request. Only the user who created the request can update or delete it.
- * - /donationMatches/{donationMatchId}: Stores donation matches.  Any authenticated user can create a donation match. No updates or deletes are allowed.
+ * - /donationMatches/{donationMatchId}: Stores donation matches.  Any authenticated user can create a donation match. Only the involved users can update.
  * - /donations/{donationId}: Stores donation records. Authenticated users can create donations. Users can only read their own donations.
- * - /users/{userId}/notifications/{notificationId}: Stores notifications for a specific user. Only the user can read/write their own notifications.
+ * - /notifications/{notificationId}: Stores notifications for all users. Users can only read their own. Any authenticated user can create a notification for another user.
  *
  * Key Security Decisions:
  * - Data validation is limited to ensuring ownership and relational integrity.
  * - Denormalization is used to avoid expensive `get()` calls in security rules.
  * - In this prototyping mode, data shape validation is relaxed to allow for rapid schema iteration.
- *
- * Denormalization for Authorization:
- * - BloodRequest documents contain a `userId` field, which is used to enforce ownership for updates and deletes.
- * - DonationMatch documents contain `requestId` and `donorId` fields to establish relationships and simplify authorization.
  */
 rules_version = '2';
 service cloud.firestore {
@@ -93,10 +90,19 @@ service cloud.firestore {
      * @description Controls access to donation matches.
      * @path /donationMatches/{donationMatchId}
      * @allow (create) Any authenticated user can create a donation match.
-     * @deny (update, delete) No updates or deletes allowed.
-     * @principle Allows creation of donation matches but prevents modification or deletion.
+     * @allow (update) Only the requesting user or the donor can update the status.
+     * @deny (delete) No deletes allowed.
+     * @principle Allows creation of donation matches but restricts modification.
      */
     match /donationMatches/{donationMatchId} {
+
+      function isRequestOwner() {
+        return request.auth.uid == resource.data.requestUserId;
+      }
+
+      function isDonor() {
+        return request.auth.uid == resource.data.donorId;
+      }
 
       // Allow any authenticated user to create a donation match.
       allow create: if request.auth != null;
@@ -104,8 +110,8 @@ service cloud.firestore {
       // Allow anyone to read or list donation matches
       allow get, list: if true;
 
-      // Prevent updates to donation matches.
-      allow update: if false;
+      // Allow only the involved parties to update the match (e.g., to accept/reject).
+      allow update: if isRequestOwner() || isDonor();
 
       // Prevent deletion of donation matches.
       allow delete: if false;
@@ -136,36 +142,27 @@ service cloud.firestore {
     }
 
     /**
-     * @description Enforces user-ownership for notifications.
-     * @path /users/{userId}/notifications/{notificationId}
-     * @allow (create, update, get, delete) if request.auth.uid == userId
-     * @deny (create, update, get, delete) if request.auth.uid != userId
-     * @principle Restricts access to a user's own notifications.
+     * @description Controls access to notifications.
+     * @path /notifications/{notificationId}
+     * @allow (create) Any authenticated user can create a notification for another user.
+     * @allow (get, list) Users can only read notifications intended for them.
+     * @allow (update) Users can update the `isRead` status of their own notifications.
+     * @deny (delete) Deletion is not allowed.
+     * @principle Enables a centralized notification system while maintaining privacy.
      */
-    match /users/{userId}/notifications/{notificationId} {
+    match /notifications/{notificationId} {
+      
+      // Allow creation if the user is authenticated and is not sending a notification to themselves.
+      allow create: if request.auth != null && request.auth.uid != request.resource.data.userId;
 
-      function isOwner(userId) {
-        return request.auth.uid == userId;
-      }
+      // Allow read/list if the notification's userId matches the requester's UID.
+      allow get, list: if request.auth != null && request.auth.uid == resource.data.userId;
 
-       function isExistingOwner(userId) {
-        return isOwner(userId) && resource != null;
-      }
-
-      // Allow the user to read their own notifications.
-      allow get: if isOwner(userId);
-
-      //Allow the owner to list their own notifications
-      allow list: if isOwner(userId);
-
-      // Allow the user to create a notification for themselves (typically done by a backend service).
-      allow create: if isOwner(userId);
-
-      // Allow the user to update their own notifications.
-      allow update: if isExistingOwner(userId);
-
-      // Allow the user to delete their own notifications.
-      allow delete: if isExistingOwner(userId);
+      // Allow a user to update their own notification (e.g., to mark it as read).
+      allow update: if request.auth != null && request.auth.uid == resource.data.userId;
+      
+      // Prevent deletion.
+      allow delete: if false;
     }
   }
 }

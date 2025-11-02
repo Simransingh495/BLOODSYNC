@@ -58,7 +58,7 @@ export default function MyRequestsPage() {
       
       const matchRef = doc(firestore, 'donationMatches', match.id);
       const requestRef = doc(firestore, 'bloodRequests', match.requestId);
-      const donorNotifCollection = collection(firestore, 'users', match.donorId, 'notifications');
+      const donorNotifCollection = collection(firestore, 'notifications');
       
       try {
         await updateDoc(matchRef, { status: response });
