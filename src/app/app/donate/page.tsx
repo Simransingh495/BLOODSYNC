@@ -123,7 +123,7 @@ export default function DonatePage() {
     } else if (locationError) { 
         fetchRequests();
     }
-  }, [location, firestore, locationError, isUserLoading]);
+  }, [location, firestore, locationError, isUserLoading, currentUser]);
 
 
   const handleOfferDonation = (request: BloodRequest) => {
@@ -137,9 +137,10 @@ export default function DonatePage() {
         requestId: request.id,
         requestUserId: request.userId,
         donorId: currentUser.uid,
-        donorName: `${currentUser.displayName || 'Anonymous Donor'}`,
+        donorName: currentUser.displayName || 'Anonymous Donor',
         donorBloodType: 'Unknown', // In a real app, get this from donor's profile
         donorLocation: 'Unknown', // and this
+        donorContactPhone: currentUser.phoneNumber || 'Not available',
         matchDate: serverTimestamp(),
         status: 'pending',
     };

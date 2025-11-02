@@ -6,10 +6,10 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { useCollection, useFirestore, useMemoFirebase, useUser, addDocumentNonBlocking } from '@/firebase';
-import { collection, query, orderBy, limit, serverTimestamp } from 'firebase/firestore';
+import { useCollection, useFirestore, useMemoFirebase, useUser, addDocumentNonBlocking, useDoc } from '@/firebase';
+import { collection, query, orderBy, limit, serverTimestamp, doc } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { BloodRequest } from '@/lib/types';
+import type { BloodRequest, User } from '@/lib/types';
 import { LifeBuoy, Share, HeartHandshake, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
@@ -19,6 +19,12 @@ export default function OverviewPage() {
   const { user, isUserLoading } = useUser();
   const { toast } = useToast();
   const [donating, setDonating] = useState<string | null>(null);
+
+  const userDocRef = useMemoFirebase(
+    () => (user ? doc(firestore, 'users', user.uid) : null),
+    [firestore, user]
+  );
+  const { data: currentUserData, isLoading: isUserDataLoading } = useDoc<User>(userDocRef);
 
   const requestsCollection = useMemoFirebase(
     () => collection(firestore, 'bloodRequests'),
@@ -40,7 +46,7 @@ export default function OverviewPage() {
   };
 
   const handleAccept = (request: BloodRequest) => {
-    if (!user || !firestore) return;
+    if (!user || !firestore || !currentUserData) return;
 
     if (user.uid === request.userId) {
       toast({
@@ -58,9 +64,10 @@ export default function OverviewPage() {
         requestId: request.id,
         requestUserId: request.userId,
         donorId: user.uid,
-        donorName: `${user.displayName || 'Anonymous Donor'}`,
-        donorBloodType: 'Unknown',
-        donorLocation: 'Unknown',
+        donorName: `${currentUserData.firstName} ${currentUserData.lastName}`,
+        donorBloodType: currentUserData.bloodType,
+        donorLocation: currentUserData.location,
+        donorContactPhone: currentUserData.phoneNumber || 'Not provided',
         matchDate: serverTimestamp(),
         status: 'pending',
     };
@@ -95,7 +102,7 @@ export default function OverviewPage() {
     }
   }
 
-  const isLoading = isRequestsLoading || isUserLoading;
+  const isLoading = isRequestsLoading || isUserLoading || isUserDataLoading;
 
   return (
     <div className="space-y-6">

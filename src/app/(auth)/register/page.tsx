@@ -52,6 +52,9 @@ const formSchema = z.object({
   password: z.string().min(6, {
     message: 'Password must be at least 6 characters.',
   }),
+  phoneNumber: z.string().min(10, {
+    message: 'A valid phone number is required.',
+  }),
   bloodType: z.string().min(1, { message: 'Please select a blood type' }),
   location: z.string().min(2, { message: 'Location is required' }),
 });
@@ -72,6 +75,7 @@ export default function RegisterPage() {
       lastName: '',
       email: '',
       password: '',
+      phoneNumber: '',
       bloodType: '',
       location: '',
     },
@@ -139,6 +143,7 @@ export default function RegisterPage() {
         firstName: values.firstName,
         lastName: values.lastName,
         email: values.email,
+        phoneNumber: values.phoneNumber,
         bloodType: values.bloodType,
         location: values.location,
         isDonor: true, // Default to donor
@@ -232,6 +237,19 @@ export default function RegisterPage() {
                   <FormLabel>Password</FormLabel>
                   <FormControl>
                     <Input type="password" placeholder="••••••••" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="phoneNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Phone Number</FormLabel>
+                  <FormControl>
+                    <Input placeholder="(123) 456-7890" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

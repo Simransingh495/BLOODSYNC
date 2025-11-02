@@ -17,6 +17,7 @@ export type User = {
   healthConditions?: string;
   avatarUrl?: string;
   isDonor: boolean;
+  phoneNumber?: string;
 };
 
 export type BloodRequest = {
@@ -44,6 +45,7 @@ export type DonationMatch = {
     donorName: string;
     donorLocation: string;
     donorBloodType: string;
+    donorContactPhone?: string;
     matchDate: Timestamp;
     status: 'pending' | 'accepted' | 'rejected' | 'completed';
 };
