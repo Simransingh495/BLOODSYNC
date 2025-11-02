@@ -12,7 +12,6 @@
  * - /users/{userId}/notifications/{notificationId}: Stores notifications for a specific user. Only the user can read/write their own notifications.
  *
  * Key Security Decisions:
- * - User listing is disabled to protect user privacy.
  * - Data validation is limited to ensuring ownership and relational integrity.
  * - Denormalization is used to avoid expensive `get()` calls in security rules.
  * - In this prototyping mode, data shape validation is relaxed to allow for rapid schema iteration.
@@ -44,8 +43,8 @@ service cloud.firestore {
 
       // Allow the user to read their own profile
       allow get: if isOwner(userId);
-      // Prevent listing of all users
-      allow list: if false;
+      // Allow any authenticated user to list users (e.g., for finding donors).
+      allow list: if request.auth != null;
 
       // Allow the user to create their own profile if the userId matches the authenticated user's ID.
       allow create: if isOwner(userId) && request.resource.data.id == userId;
