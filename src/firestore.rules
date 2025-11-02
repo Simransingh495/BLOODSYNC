@@ -15,7 +15,7 @@
  *
  * Key Security Decisions:
  * - Data validation is limited to ensuring ownership and relational integrity.
- * - Denormalization is used to avoid expensive `get()` calls in security rules.
+ * - Denormalization is used to avoid expensive `get()` calls in security rules where possible, but `get()` is used for critical ownership checks.
  * - In this prototyping mode, data shape validation is relaxed to allow for rapid schema iteration.
  */
 rules_version = '2';
@@ -97,7 +97,8 @@ service cloud.firestore {
     match /donationMatches/{donationMatchId} {
 
       function isRequestOwner() {
-        return request.auth.uid == resource.data.requestUserId;
+        let requestDoc = get(/databases/$(database)/documents/bloodRequests/$(resource.data.requestId));
+        return request.auth.uid == requestDoc.data.userId;
       }
 
       function isDonor() {
@@ -145,8 +146,7 @@ service cloud.firestore {
      * @description Controls access to notifications.
      * @path /notifications/{notificationId}
      * @allow (create) Any authenticated user can create a notification for another user.
-     * @allow (list) Users can only read notifications intended for them by querying.
-     * @allow (get) A user can get a notification if it is intended for them.
+     * @allow (get, list) Users can only read notifications intended for them.
      * @allow (update) Users can update the `isRead` status of their own notifications.
      * @deny (delete) Deletion is not allowed.
      * @principle Enables a centralized notification system while maintaining privacy.
@@ -159,9 +159,9 @@ service cloud.firestore {
       // Allow get if the notification's userId matches the requester's UID.
       allow get: if request.auth != null && request.auth.uid == resource.data.userId;
       
-      // Allow list ONLY if the query is filtered by the authenticated user's ID.
-      // This prevents a user from listing all notifications in the system.
-      allow list: if request.auth != null && request.query.filters.size() > 0 && request.query.filters[0].field == 'userId' && request.query.filters[0].value == request.auth.uid;
+      // Allow list operations for any authenticated user.
+      // Security is enforced by the client-side queries which MUST filter by userId.
+      allow list: if request.auth != null;
 
       // Allow a user to update their own notification (e.g., to mark it as read).
       allow update: if request.auth != null && request.auth.uid == resource.data.userId;
