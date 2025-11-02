@@ -8,7 +8,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
-import { collection, query, where, orderBy, doc, updateDoc } from 'firebase/firestore';
+import { collection, query, where, doc, updateDoc } from 'firebase/firestore';
 import type { Notification } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Bell, BellOff, Check } from 'lucide-react';
@@ -16,17 +16,25 @@ import { formatDistanceToNow } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+
 
 export default function NotificationPage() {
   const firestore = useFirestore();
   const { user } = useUser();
   const { toast } = useToast();
 
+  // The orderBy clause was causing an internal assertion error in Firestore
+  // because the composite index was not created. Removing it to fix the crash.
   const notificationsQuery = useMemoFirebase(
     () => user ? query(
       collection(firestore, 'notifications'),
-      where('userId', '==', user.uid),
-      orderBy('createdAt', 'desc')
+      where('userId', '==', user.uid)
     ) : null,
     [firestore, user]
   );
@@ -43,6 +51,10 @@ export default function NotificationPage() {
       toast({ variant: 'destructive', title: 'Error', description: 'Could not update notification.' });
     }
   };
+
+  const sortedNotifications = notifications
+    ? [...notifications].sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis())
+    : [];
 
   return (
     <div className="space-y-6">
@@ -66,9 +78,9 @@ export default function NotificationPage() {
                 <Skeleton className="h-20 w-full" />
               </div>
             )}
-            {!isLoading && notifications && notifications.length > 0 ? (
+            {!isLoading && sortedNotifications && sortedNotifications.length > 0 ? (
                 <div className="space-y-4">
-                    {notifications.map((notification) => (
+                    {sortedNotifications.map((notification) => (
                         <div key={notification.id} className={cn("flex items-start gap-4 rounded-lg border p-4 transition-colors", !notification.isRead && "bg-primary/5")}>
                             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary mt-1">
                                 <Bell className="h-6 w-6" />
@@ -113,5 +125,3 @@ export default function NotificationPage() {
     </div>
   );
 }
-// We need tooltip for the mark as read button, so we need to import it.
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
