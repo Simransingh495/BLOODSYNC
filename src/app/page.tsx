@@ -8,22 +8,34 @@ import {
   HeartHandshake,
   Search,
   UserPlus,
-  Droplets,
   LifeBuoy,
   BrainCircuit,
   Bell,
   MapPin,
+  Quote,
 } from 'lucide-react';
 import { users, bloodRequests, donations } from '@/lib/data';
+import { Card, CardContent } from '@/components/ui/card';
 
 export default function Home() {
   const heroImage = PlaceHolderImages.find((img) => img.id === 'hero-image');
-  const communityImage = PlaceHolderImages.find((img) => img.id === 'community-image');
+  const communityImage = PlaceHolderImages.find(
+    (img) => img.id === 'community-image'
+  );
+  const testimonial1 = PlaceHolderImages.find(
+    (img) => img.id === 'testimonial-1'
+  );
+  const testimonial2 = PlaceHolderImages.find(
+    (img) => img.id === 'testimonial-2'
+  );
+  const testimonial3 = PlaceHolderImages.find(
+    (img) => img.id === 'testimonial-3'
+  );
 
   const stats = [
     {
       title: 'Donors Registered',
-      value: users.filter(u => u.role === 'donor').length,
+      value: users.filter((u) => u.role === 'donor').length,
       icon: UserPlus,
     },
     {
@@ -63,24 +75,52 @@ export default function Home() {
     {
       icon: BrainCircuit,
       title: 'AI Smart Matching',
-      description: 'Our advanced AI algorithm instantly finds the most compatible donors based on blood type, location, availability, and donation history, ensuring the best match in critical situations. This intelligent system significantly reduces the time to find a suitable donor.'
+      description:
+        'Our advanced AI algorithm instantly finds the most compatible donors based on blood type, location, availability, and donation history, ensuring the best match in critical situations. This intelligent system significantly reduces the time to find a suitable donor.',
     },
     {
       icon: MapPin,
       title: 'Geolocation-Based Search',
-      description: 'Quickly find donors in your immediate vicinity with our automatic location detection and interactive map. This feature minimizes travel time and accelerates the donation process when every second counts.'
+      description:
+        'Quickly find donors in your immediate vicinity with our automatic location detection and interactive map. This feature minimizes travel time and accelerates the donation process when every second counts.',
     },
     {
       icon: Bell,
       title: 'Real-time Notifications',
-      description: 'Receive instant push notifications and alerts for urgent blood requests in your area. This allows you to respond quickly and make a timely, life-saving impact, whether you are at home or on the go.'
+      description:
+        'Receive instant push notifications and alerts for urgent blood requests in your area. This allows you to respond quickly and make a timely, life-saving impact, whether you are at home or on the go.',
     },
     {
       icon: LifeBuoy,
       title: 'Urgent Request Broadcasting',
-      description: 'In an emergency, post an urgent blood request and have it instantly broadcast to all suitable donors nearby. This powerful feature maximizes the chances of a quick response from our community of heroes.'
-    }
-  ]
+      description:
+        'In an emergency, post an urgent blood request and have it instantly broadcast to all suitable donors nearby. This powerful feature maximizes the chances of a quick response from our community of heroes.',
+    },
+  ];
+
+  const testimonials = [
+    {
+      name: 'Priya Sharma',
+      role: 'Donor',
+      quote:
+        'BloodSync made it so easy to find a donation opportunity near me. Knowing I could help someone in my own community was incredibly rewarding.',
+      image: testimonial1,
+    },
+    {
+      name: 'Aarav Desai',
+      role: 'Recipient',
+      quote:
+        "When my family needed blood urgently, BloodSync was a miracle. We found a matching donor within hours. I'm forever grateful.",
+      image: testimonial2,
+    },
+    {
+      name: 'Dr. Anjali Mehta',
+      role: 'Doctor',
+      quote:
+        'This platform is a game-changer for hospitals. It streamlines the process of finding donors, which is critical in emergency situations.',
+      image: testimonial3,
+    },
+  ];
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -142,9 +182,23 @@ export default function Home() {
             </div>
           </div>
         </section>
+        
+        {/* Our Mission Section */}
+        <section id="mission" className="bg-background py-16 sm:py-24">
+          <div className="container mx-auto px-4">
+            <div className="mx-auto max-w-3xl text-center">
+              <h2 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl">
+                Our Mission
+              </h2>
+              <p className="mt-4 text-xl text-muted-foreground">
+                To create a world where no one suffers due to a shortage of blood. We aim to bridge the gap between donors and recipients through a smart, reliable, and life-saving network.
+              </p>
+            </div>
+          </div>
+        </section>
 
         {/* About Us Section */}
-        <section id="about" className="bg-background py-16 sm:py-24">
+        <section id="about" className="bg-secondary/50 py-16 sm:py-24">
           <div className="container mx-auto px-4">
             <div className="mx-auto max-w-3xl text-center">
               <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
@@ -171,11 +225,29 @@ export default function Home() {
             </div>
           </div>
         </section>
-        
-        {/* Features Section */}
-        <section id="features" className="bg-secondary/50 py-16 sm:py-24">
+
+        {/* Quote Section */}
+        <section className="bg-primary/5 py-16 sm:py-24">
           <div className="container mx-auto px-4">
-             <div className="mx-auto max-w-3xl text-center">
+            <div className="mx-auto max-w-4xl text-center">
+              <Quote className="mx-auto h-12 w-12 text-primary" />
+              <blockquote className="mt-4">
+                <p className="text-2xl font-medium text-foreground">
+                  "The gift of blood is a gift to someone's life. It costs nothing but means everything."
+                </p>
+              </blockquote>
+              <cite className="mt-4 block text-base font-semibold text-muted-foreground not-italic">
+                - Anonymous Donor
+              </cite>
+            </div>
+          </div>
+        </section>
+
+
+        {/* Features Section */}
+        <section id="features" className="bg-background py-16 sm:py-24">
+          <div className="container mx-auto px-4">
+            <div className="mx-auto max-w-3xl text-center">
               <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
                 Powerful Platform Features
               </h2>
@@ -185,7 +257,7 @@ export default function Home() {
             </div>
             <div className="mt-16 grid grid-cols-1 gap-y-12 gap-x-8 md:grid-cols-2 lg:grid-cols-2">
               {features.map((feature) => (
-                 <div key={feature.title} className="flex items-start gap-4">
+                <div key={feature.title} className="flex items-start gap-4">
                   <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                     <feature.icon className="h-6 w-6" />
                   </div>
@@ -202,35 +274,71 @@ export default function Home() {
             </div>
           </div>
         </section>
+        
+        {/* Stories Section */}
+        <section className="bg-secondary/50 py-16 sm:py-24">
+          <div className="container mx-auto px-4">
+            <div className="mx-auto max-w-3xl text-center">
+              <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+                Stories From Our Community
+              </h2>
+              <p className="mt-4 text-lg text-muted-foreground">
+                Real stories from donors, recipients, and medical staff who have used BloodSync to save lives.
+              </p>
+            </div>
+            <div className="mt-16 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+              {testimonials.map((testimonial) => (
+                <Card key={testimonial.name} className="flex flex-col items-center text-center">
+                  <CardContent className="p-6">
+                    {testimonial.image && (
+                       <Image
+                        src={testimonial.image.imageUrl}
+                        alt={`Photo of ${testimonial.name}`}
+                        width={100}
+                        height={100}
+                        className="mx-auto mb-4 h-24 w-24 rounded-full object-cover"
+                        data-ai-hint={testimonial.image.imageHint}
+                      />
+                    )}
+                    <p className="text-base text-muted-foreground">"{testimonial.quote}"</p>
+                    <div className="mt-4">
+                      <p className="font-semibold text-foreground">{testimonial.name}</p>
+                      <p className="text-sm text-primary">{testimonial.role}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
 
         {/* Join Community Section */}
         <section className="relative bg-primary/5 py-16 sm:py-24">
-            {communityImage && (
-              <Image
-                src={communityImage.imageUrl}
-                alt={communityImage.description}
-                fill
-                className="object-cover object-center opacity-10"
-                data-ai-hint={communityImage.imageHint}
-              />
-            )}
-            <div className="relative container mx-auto px-4">
-              <div className="mx-auto max-w-3xl text-center">
-                <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-                  Join Our Community of Lifesavers
-                </h2>
-                <p className="mt-4 text-lg text-muted-foreground">
-                  Become a registered donor on BloodSync today and be a hero in someone's story. Your single act of kindness can save up to three lives. Together, we can build a network of hope.
-                </p>
-                <div className="mt-8">
-                   <Button asChild size="lg" className="rounded-full">
-                    <Link href="/register">Register to Donate</Link>
-                  </Button>
-                </div>
+          {communityImage && (
+            <Image
+              src={communityImage.imageUrl}
+              alt={communityImage.description}
+              fill
+              className="object-cover object-center opacity-10"
+              data-ai-hint={communityImage.imageHint}
+            />
+          )}
+          <div className="relative container mx-auto px-4">
+            <div className="mx-auto max-w-3xl text-center">
+              <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+                Join Our Community of Lifesavers
+              </h2>
+              <p className="mt-4 text-lg text-muted-foreground">
+                Become a registered donor on BloodSync today and be a hero in someone's story. Your single act of kindness can save up to three lives. Together, we can build a network of hope.
+              </p>
+              <div className="mt-8">
+                <Button asChild size="lg" className="rounded-full">
+                  <Link href="/register">Register to Donate</Link>
+                </Button>
               </div>
             </div>
+          </div>
         </section>
-
       </main>
       <footer className="border-t bg-background">
         <div className="container mx-auto flex flex-col items-center justify-between gap-4 px-4 py-6 sm:flex-row">
@@ -238,12 +346,29 @@ export default function Home() {
             <Link href="/">
               <span className="text-lg font-bold">BloodSync</span>
             </Link>
-            <p className="text-sm text-muted-foreground">Saving lives, one drop at a time.</p>
+            <p className="text-sm text-muted-foreground">
+              Saving lives, one drop at a time.
+            </p>
           </div>
           <nav className="flex gap-4">
-            <Link href="#about" className="text-sm text-muted-foreground hover:text-primary">About</Link>
-            <Link href="#features" className="text-sm text-muted-foreground hover:text-primary">Features</Link>
-            <Link href="/login" className="text-sm text-muted-foreground hover:text-primary">Login</Link>
+            <Link
+              href="#about"
+              className="text-sm text-muted-foreground hover:text-primary"
+            >
+              About
+            </Link>
+            <Link
+              href="#features"
+              className="text-sm text-muted-foreground hover:text-primary"
+            >
+              Features
+            </Link>
+            <Link
+              href="/login"
+              className="text-sm text-muted-foreground hover:text-primary"
+            >
+              Login
+            </Link>
           </nav>
           <p className="text-sm text-muted-foreground">
             © {new Date().getFullYear()} BloodSync. All rights reserved.
