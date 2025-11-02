@@ -6,14 +6,20 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, limit } from 'firebase/firestore';
+import { useCollection, useFirestore, useMemoFirebase, useUser, addDocumentNonBlocking } from '@/firebase';
+import { collection, query, orderBy, limit, serverTimestamp } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { BloodRequest } from '@/lib/types';
-import { LifeBuoy } from 'lucide-react';
+import { LifeBuoy, Share, HeartHandshake, Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { useState } from 'react';
 
 export default function OverviewPage() {
   const firestore = useFirestore();
+  const { user, isUserLoading } = useUser();
+  const { toast } = useToast();
+  const [donating, setDonating] = useState<string | null>(null);
+
   const requestsCollection = useMemoFirebase(
     () => collection(firestore, 'bloodRequests'),
     [firestore]
@@ -22,7 +28,74 @@ export default function OverviewPage() {
     () => query(requestsCollection, orderBy('createdAt', 'desc'), limit(5)),
     [requestsCollection]
   );
-  const { data: recentRequests, isLoading } = useCollection<BloodRequest>(recentRequestsQuery);
+  const { data: recentRequests, isLoading: isRequestsLoading } = useCollection<BloodRequest>(recentRequestsQuery);
+
+  const handleShare = (request: BloodRequest) => {
+    const shareText = `A patient needs your help! Blood type: ${request.bloodType}, Location: ${request.location}. Please help if you can.`;
+    navigator.clipboard.writeText(shareText);
+    toast({
+      title: 'Copied to Clipboard!',
+      description: 'You can now share this request with others.',
+    });
+  };
+
+  const handleAccept = (request: BloodRequest) => {
+    if (!user || !firestore) return;
+
+    if (user.uid === request.userId) {
+      toast({
+        variant: 'destructive',
+        title: 'Cannot Donate to Yourself',
+        description: 'You cannot accept your own blood request.',
+      });
+      return;
+    }
+    
+    setDonating(request.id);
+
+    const matchCollection = collection(firestore, 'donationMatches');
+    const newMatch = {
+        requestId: request.id,
+        requestUserId: request.userId,
+        donorId: user.uid,
+        donorName: `${user.displayName || 'Anonymous Donor'}`,
+        donorBloodType: 'Unknown',
+        donorLocation: 'Unknown',
+        matchDate: serverTimestamp(),
+        status: 'pending',
+    };
+    
+    const patientNotifCollection = collection(firestore, 'users', request.userId, 'notifications');
+    const newNotification = {
+        userId: request.userId,
+        message: `A donor has offered to fulfill your request for ${request.bloodType} blood.`,
+        type: 'request_match',
+        relatedId: request.id,
+        isRead: false,
+        createdAt: serverTimestamp(),
+    };
+
+    try {
+        addDocumentNonBlocking(matchCollection, newMatch);
+        addDocumentNonBlocking(patientNotifCollection, newNotification);
+
+        toast({
+            title: "Offer Sent!",
+            description: `The patient has been notified of your offer.`
+        });
+    } catch(err) {
+        console.error("Error offering donation: ", err);
+        toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Could not send your donation offer."
+        })
+    } finally {
+        setDonating(null);
+    }
+  }
+
+  const isLoading = isRequestsLoading || isUserLoading;
 
   return (
     <div className="space-y-6">
@@ -59,16 +132,29 @@ export default function OverviewPage() {
                   </div>
                 </div>
                 <div className="flex-1">
-                  <div className="font-semibold">
+                  <div className="font-semibold flex items-center gap-2">
                     <Badge variant={request.urgency === 'High' ? 'destructive' : 'secondary'}>{request.urgency}</Badge> Urgency
                   </div>
                   <p className="text-sm text-muted-foreground">
                     {request.location}
                   </p>
+                   <p className="text-xs text-muted-foreground mt-1">
+                    Posted by {request.patientName} on {request.createdAt.toDate().toLocaleDateString()}
+                  </p>
                 </div>
-                <div className="flex gap-2">
-                  <Button variant="secondary" size="sm">Share</Button>
-                  <Button size="sm">Accept</Button>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Button variant="secondary" size="sm" onClick={() => handleShare(request)}>
+                    <Share className="mr-2 h-4 w-4" />
+                    Share
+                  </Button>
+                  <Button size="sm" onClick={() => handleAccept(request)} disabled={donating === request.id}>
+                    {donating === request.id ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <HeartHandshake className="mr-2 h-4 w-4" />
+                    )}
+                    Accept
+                  </Button>
                 </div>
               </CardContent>
             </Card>
