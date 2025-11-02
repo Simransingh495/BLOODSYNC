@@ -2,9 +2,9 @@
   "placeholderImages": [
     {
       "id": "hero-image",
-      "description": "A bustling blood drive event in a well-lit hall with multiple people donating blood.",
-      "imageUrl": "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxibG9vZCUyMGRyaXZlfGVufDB8fHx8MTc2NDA0Mzk2OHww&ixlib=rb-4.0.3&q=80&w=1080",
-      "imageHint": "blood drive"
+      "description": "A person donating blood in a clinical setting, representing a hospital blood drive.",
+      "imageUrl": "https://images.unsplash.com/photo-1615461066841-6116e61058f4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxibG9vZCUyMGRvbmF0aW9uJTIwaG9zcGl0YWx8ZW58MHx8fHwxNzY0MDQ0MjM3fDA&ixlib=rb-4.0.3&q=80&w=1080",
+      "imageHint": "blood donation"
     },
     {
       "id": "community-image",
