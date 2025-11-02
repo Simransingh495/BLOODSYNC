@@ -65,7 +65,7 @@ export default function RegisterPage() {
   const auth = useAuth();
   const firestore = useFirestore();
   const [isLoading, setIsLoading] = useState(false);
-  const [isLocationLoading, setIsLocationLoading] = useState(false);
+  const [isLocationLoading, setIsLocationLoading] = useState(true); // Start true
   const [userCoords, setUserCoords] = useState<{ lat: number, lng: number} | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -80,10 +80,9 @@ export default function RegisterPage() {
       location: '',
     },
   });
-
+  
   useEffect(() => {
-    if (navigator.geolocation) {
-      setIsLocationLoading(true);
+    if (typeof window !== 'undefined' && navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           try {
@@ -123,6 +122,8 @@ export default function RegisterPage() {
           setIsLocationLoading(false);
         }
       );
+    } else {
+        setIsLocationLoading(false);
     }
   }, [form, toast]);
 
