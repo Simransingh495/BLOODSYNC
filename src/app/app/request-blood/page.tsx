@@ -197,7 +197,7 @@ export default function RequestBloodPage() {
                     <FormItem>
                       <FormLabel>Patient Full Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g., Jane Smith" {...field} />
+                        <Input placeholder="e.g., Priya Patel" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -235,7 +235,7 @@ export default function RequestBloodPage() {
                       <FormLabel>Hospital/Location</FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <Input placeholder="e.g., City General Hospital" {...field} />
+                          <Input placeholder="e.g., Apollo Hospital, Delhi" {...field} />
                            {isClient && isLocationLoading && <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />}
                         </div>
                       </FormControl>
@@ -272,7 +272,7 @@ export default function RequestBloodPage() {
                     <FormItem>
                       <FormLabel>Contact Person</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g., John Smith" {...field} />
+                        <Input placeholder="e.g., Rohan Sharma" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -299,7 +299,7 @@ export default function RequestBloodPage() {
                     <FormItem>
                       <FormLabel>Contact Phone</FormLabel>
                       <FormControl>
-                        <Input placeholder="(123) 456-7890" {...field} />
+                        <Input placeholder="+91 98765 43210" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
