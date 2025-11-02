@@ -6,8 +6,8 @@
  * Blood requests and donation matches are accessible with certain restrictions based on user roles and relationships.
  *
  * Data Structure:
- * - /users/{userId}: Stores user profiles. Only the authenticated user can read/write their own profile.
- * - /bloodRequests/{bloodRequestId}: Stores blood requests. Any authenticated user can create a blood request. Only the user who created the request can update or delete it.
+ * - /users/{userId}: Stores user profiles. Only the authenticated user can read/write their own profile. Authenticated users can list other users to find donors.
+ * - /bloodRequests/{bloodRequestId}: Stores blood requests. Any authenticated user can create or read a blood request. Only the user who created the request can update or delete it.
  * - /donationMatches/{donationMatchId}: Stores donation matches.  Any authenticated user can create a donation match. No updates or deletes are allowed.
  * - /users/{userId}/notifications/{notificationId}: Stores notifications for a specific user. Only the user can read/write their own notifications.
  *
@@ -60,7 +60,7 @@ service cloud.firestore {
      * @description Controls access to blood requests.
      * @path /bloodRequests/{bloodRequestId}
      * @allow (create) Any authenticated user can create a blood request.
-     * @allow (get, list) Any user can view any blood requests.
+     * @allow (get, list) Any authenticated user can view any blood requests.
      * @allow (update, delete) Only the user who created the request can update or delete it.
      * @deny (update, delete) if request.auth.uid != resource.data.userId
      * @principle Allows public read access but restricts write access to the owner.
@@ -78,8 +78,8 @@ service cloud.firestore {
       // Allow any authenticated user to create a blood request.
       allow create: if request.auth != null;
 
-      // Allow anyone to read or list blood requests.
-      allow get, list: if true;
+      // Allow any authenticated user to read or list blood requests.
+      allow get, list: if request.auth != null;
 
       // Allow only the owner (requesting user) to update the blood request.
       allow update: if isExistingOwner();
