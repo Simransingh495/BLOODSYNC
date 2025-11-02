@@ -65,7 +65,7 @@ export default function RegisterPage() {
   const auth = useAuth();
   const firestore = useFirestore();
   const [isLoading, setIsLoading] = useState(false);
-  const [isLocationLoading, setIsLocationLoading] = useState(false); // Fix: Start false
+  const [isLocationLoading, setIsLocationLoading] = useState(false);
   const [userCoords, setUserCoords] = useState<{ lat: number, lng: number} | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -82,8 +82,9 @@ export default function RegisterPage() {
   });
   
   useEffect(() => {
-    if (typeof window !== 'undefined' && navigator.geolocation) {
-      setIsLocationLoading(true); // Set loading to true only on the client
+    // This entire block only runs on the client.
+    setIsLocationLoading(true);
+    if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           try {
@@ -301,7 +302,7 @@ export default function RegisterPage() {
               )}
             />
             <Button type="submit" className="w-full" disabled={isLoading || isLocationLoading}>
-              {(isLoading || isLocationLoading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Create Account
             </Button>
           </form>

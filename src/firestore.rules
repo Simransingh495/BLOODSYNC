@@ -138,7 +138,7 @@ service cloud.firestore {
       allow get: if request.auth.uid == resource.data.donorId;
 
       // Allow authenticated users to list ONLY their own donations.
-      // This rule requires the client query to use a 'where("donorId", "==", request.auth.uid)' clause.
+      // The client query MUST filter by donorId for this to be allowed.
       allow list: if request.auth != null && request.query.get("donorId") == request.auth.uid;
 
       // Prevent updates and deletions to maintain data integrity.

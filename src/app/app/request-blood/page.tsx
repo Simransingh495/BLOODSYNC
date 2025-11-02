@@ -71,7 +71,8 @@ export default function RequestBloodPage() {
   });
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && navigator.geolocation) {
+    // This entire block only runs on the client.
+    if (navigator.geolocation) {
       setIsLocationLoading(true);
       navigator.geolocation.getCurrentPosition(
         async (position) => {
@@ -288,7 +289,7 @@ export default function RequestBloodPage() {
                   )}
                 />
               <Button type="submit" disabled={isLoading || isLocationLoading} className="bg-accent text-accent-foreground hover:bg-accent/90">
-                 {(isLoading || isLocationLoading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Submit Request
               </Button>
             </form>
