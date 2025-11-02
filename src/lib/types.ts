@@ -25,6 +25,9 @@ export type BloodRequest = {
   patientName: string;
   bloodType: string;
   location: string;
+  geohash?: string;
+  lat?: number;
+  lng?: number;
   urgency: 'Low' | 'Medium' | 'High';
   status: 'Pending' | 'Fulfilled' | 'Cancelled';
   createdAt: Timestamp;

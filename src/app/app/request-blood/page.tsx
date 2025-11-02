@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { Loader2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import * as geofire from 'geofire-common';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -54,6 +55,7 @@ export default function RequestBloodPage() {
   const { user } = useUser();
   const [isLoading, setIsLoading] = useState(false);
   const [isLocationLoading, setIsLocationLoading] = useState(false);
+  const [userCoords, setUserCoords] = useState<{ lat: number; lon: number } | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -75,6 +77,7 @@ export default function RequestBloodPage() {
         async (position) => {
           try {
             const { latitude, longitude } = position.coords;
+            setUserCoords({ lat: latitude, lon: longitude });
             const response = await fetch(
               `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
             );
@@ -120,12 +123,18 @@ export default function RequestBloodPage() {
     setIsLoading(true);
 
     const requestsCollection = collection(firestore, 'bloodRequests');
-    const newRequest = {
+    const newRequest: any = {
       ...values,
       userId: user.uid,
       status: 'Pending',
       createdAt: serverTimestamp(),
     };
+    
+    if (userCoords) {
+      newRequest.lat = userCoords.lat;
+      newRequest.lng = userCoords.lon;
+      newRequest.geohash = geofire.geohashForLocation([userCoords.lat, userCoords.lon]);
+    }
 
     try {
       addDocumentNonBlocking(requestsCollection, newRequest);
