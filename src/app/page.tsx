@@ -10,6 +10,9 @@ import {
   UserPlus,
   Droplets,
   LifeBuoy,
+  BrainCircuit,
+  Bell,
+  MapPin,
 } from 'lucide-react';
 import { users, bloodRequests, donations } from '@/lib/data';
 
@@ -34,26 +37,49 @@ export default function Home() {
     },
   ];
 
-  const howItWorks = [
+  const aboutSteps = [
     {
       icon: UserPlus,
-      title: 'Register as a Donor',
+      title: 'Register Seamlessly',
       description:
-        'Create a profile with your blood type and location. Your information is kept secure and private.',
+        'Create your secure profile in minutes. Add your blood type, location, and availability to join our network of lifesavers.',
     },
     {
       icon: Search,
-      title: 'Find a Donor',
+      title: 'Find or Request Blood',
       description:
-        'Patients in need can search for compatible blood donors in their area quickly and easily.',
+        'Patients can instantly search for donors, while our system broadcasts urgent requests to all available and compatible donors in the area.',
     },
     {
       icon: HeartHandshake,
-      title: 'Connect & Save a Life',
+      title: 'Connect and Save Lives',
       description:
-        'Once a match is found, parties can connect to coordinate the donation and help save a life.',
+        'Our platform facilitates a direct connection between donors and recipients, ensuring timely communication for life-saving donations.',
     },
   ];
+
+  const features = [
+    {
+      icon: BrainCircuit,
+      title: 'AI Smart Matching',
+      description: 'Our advanced AI algorithm instantly finds the most compatible donors based on blood type, location, availability, and donation history, ensuring the best match in critical situations.'
+    },
+    {
+      icon: MapPin,
+      title: 'Geolocation-Based Search',
+      description: 'Quickly find donors in your immediate vicinity with our automatic location detection, minimizing travel time and accelerating the donation process.'
+    },
+    {
+      icon: Bell,
+      title: 'Real-time Notifications',
+      description: 'Receive instant alerts for urgent blood requests in your area, allowing you to respond quickly and make a timely, life-saving impact.'
+    },
+    {
+      icon: LifeBuoy,
+      title: 'Urgent Request Broadcasting',
+      description: 'Post an urgent blood request and have it instantly broadcast to all suitable donors nearby, maximizing the chances of a quick response.'
+    }
+  ]
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -81,7 +107,7 @@ export default function Home() {
             </p>
             <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:justify-center">
               <Button asChild size="lg" className="rounded-full">
-                <Link href="/register">Donate Blood</Link>
+                <Link href="/app/request-blood">Request Blood</Link>
               </Button>
               <Button
                 asChild
@@ -89,7 +115,7 @@ export default function Home() {
                 variant="secondary"
                 className="rounded-full"
               >
-                <Link href="/app/request-blood">Request Blood</Link>
+                <Link href="/register">Donate Blood</Link>
               </Button>
             </div>
           </div>
@@ -114,19 +140,19 @@ export default function Home() {
           </div>
         </section>
 
-        {/* How It Works Section */}
-        <section className="bg-secondary/50 py-16 sm:py-24">
+        {/* About Us Section */}
+        <section id="about" className="bg-secondary/50 py-16 sm:py-24">
           <div className="container mx-auto px-4">
-            <div className="mx-auto max-w-2xl text-center">
+            <div className="mx-auto max-w-3xl text-center">
               <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-                How It Works
+                About BloodSync
               </h2>
               <p className="mt-4 text-lg text-muted-foreground">
-                A simple, three-step process to save lives.
+                BloodSync is a modern, AI-powered platform dedicated to bridging the gap between blood donors and patients in urgent need. Our mission is to create a seamless, efficient, and community-driven network to save lives. We believe that technology can solve the critical problem of blood shortages by connecting people in a timely and intelligent manner.
               </p>
             </div>
             <div className="mt-12 grid grid-cols-1 gap-12 md:grid-cols-3">
-              {howItWorks.map((step) => (
+              {aboutSteps.map((step) => (
                 <div key={step.title} className="text-center">
                   <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary text-primary-foreground">
                     <step.icon className="h-8 w-8" />
@@ -142,6 +168,36 @@ export default function Home() {
             </div>
           </div>
         </section>
+        
+        {/* Features Section */}
+        <section id="features" className="bg-background py-16 sm:py-24">
+          <div className="container mx-auto px-4">
+             <div className="mx-auto max-w-2xl text-center">
+              <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+                Platform Features
+              </h2>
+              <p className="mt-4 text-lg text-muted-foreground">
+                Powerful tools designed to make donating and receiving blood simpler than ever.
+              </p>
+            </div>
+            <div className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
+              {features.map((feature) => (
+                 <div key={feature.title} className="flex flex-col items-center text-center">
+                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
+                    <feature.icon className="h-8 w-8" />
+                  </div>
+                  <h3 className="mt-5 text-xl font-semibold text-foreground">
+                    {feature.title}
+                  </h3>
+                  <p className="mt-2 text-base text-muted-foreground">
+                    {feature.description}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
       </main>
       <footer className="border-t bg-background">
         <div className="container mx-auto flex flex-col items-center justify-between gap-4 px-4 py-6 sm:flex-row">
