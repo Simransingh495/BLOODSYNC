@@ -7,8 +7,8 @@ import { Menu } from 'lucide-react';
 export function MainHeader() {
   const navLinks = [
     { href: '/', label: 'Home' },
-    { href: '/register', label: 'Donate Blood' },
-    { href: '/app/request-blood', label: 'Request Blood' },
+    { href: '#about', label: 'About' },
+    { href: '#features', label: 'Features' },
     { href: '/admin', label: 'Admin' },
   ];
 
