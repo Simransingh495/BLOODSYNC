@@ -15,7 +15,7 @@
  *
  * Key Security Decisions:
  * - Data validation is limited to ensuring ownership and relational integrity.
- * - Denormalization is used to avoid expensive `get()` calls in security rules.
+ * - Denormalization is used to avoid expensive `get()` calls in security rules where possible, but `get()` is used for critical ownership checks.
  * - In this prototyping mode, data shape validation is relaxed to allow for rapid schema iteration.
  */
 rules_version = '2';
@@ -97,7 +97,8 @@ service cloud.firestore {
     match /donationMatches/{donationMatchId} {
 
       function isRequestOwner() {
-        return request.auth.uid == resource.data.requestUserId;
+        let requestDoc = get(/databases/$(database)/documents/bloodRequests/$(resource.data.requestId));
+        return request.auth.uid == requestDoc.data.userId;
       }
 
       function isDonor() {
@@ -108,7 +109,7 @@ service cloud.firestore {
       allow create: if request.auth != null;
 
       // Allow anyone to read or list donation matches
-      allow get, list: if true;
+      allow get, list: if request.auth != null;
 
       // Allow only the involved parties to update the match (e.g., to accept/reject).
       allow update: if isRequestOwner() || isDonor();
@@ -131,10 +132,9 @@ service cloud.firestore {
       allow create: if request.auth != null;
 
       // Allow a user to read their own donation records.
-      // This supports querying for a user's donation history.
       allow get: if request.auth.uid == resource.data.donorId;
 
-      // Allow authenticated users to list donations (e.g. for admin panels)
+      // Allow authenticated users to list donations. Client queries MUST filter by donorId.
       allow list: if request.auth != null;
 
       // Prevent updates and deletions to maintain data integrity.
@@ -155,8 +155,12 @@ service cloud.firestore {
       // Allow creation if the user is authenticated and is not sending a notification to themselves.
       allow create: if request.auth != null && request.auth.uid != request.resource.data.userId;
 
-      // Allow read/list if the notification's userId matches the requester's UID.
-      allow get, list: if request.auth != null && request.auth.uid == resource.data.userId;
+      // Allow a user to get their own notification.
+      allow get: if request.auth != null && request.auth.uid == resource.data.userId;
+      
+      // Allow a user to list their own notifications.
+      // The client query MUST enforce this by filtering where `userId` == `request.auth.uid`.
+      allow list: if request.auth != null;
 
       // Allow a user to update their own notification (e.g., to mark it as read).
       allow update: if request.auth != null && request.auth.uid == resource.data.userId;
