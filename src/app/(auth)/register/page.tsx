@@ -35,9 +35,9 @@ import {
 } from '@/components/ui/select';
 import { bloodTypes } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, setDocumentNonBlocking } from '@/firebase';
+import { useAuth, useFirestore } from '@/firebase';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc } from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore';
 
 const formSchema = z.object({
   firstName: z.string().min(2, {
@@ -98,6 +98,7 @@ export default function RegisterPage() {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!auth || !firestore) return;
     setIsLoading(true);
     try {
       const userCredential = await createUserWithEmailAndPassword(
@@ -127,7 +128,7 @@ export default function RegisterPage() {
         userData.geohash = geofire.geohashForLocation([userCoords.lat, userCoords.lng]);
       }
       
-      setDocumentNonBlocking(userDocRef, userData, { merge: false });
+      await setDoc(userDocRef, userData);
 
       toast({
         title: 'Registration Successful',
