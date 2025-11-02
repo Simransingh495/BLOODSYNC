@@ -13,6 +13,8 @@ import {
   Bell,
   MapPin,
   Quote,
+  Linkedin,
+  Twitter,
 } from 'lucide-react';
 import { users, bloodRequests, donations } from '@/lib/data';
 import { Card, CardContent } from '@/components/ui/card';
@@ -298,8 +300,14 @@ export default function Home() {
             <div className="flex flex-col items-center gap-2 sm:items-end">
                 <p className="text-sm font-semibold text-muted-foreground">Contact Us</p>
                 <div className="flex gap-4">
-                    <a href="#" className="text-sm text-muted-foreground hover:text-primary">LinkedIn</a>
-                    <a href="#" className="text-sm text-muted-foreground hover:text-primary">Twitter</a>
+                    <a href="https://www.linkedin.com/in/simran-singh" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary">
+                      <Linkedin className="h-6 w-6" />
+                      <span className="sr-only">LinkedIn</span>
+                    </a>
+                    <a href="https://x.com/SimranSing67957" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary">
+                      <Twitter className="h-6 w-6" />
+                      <span className="sr-only">Twitter</span>
+                    </a>
                 </div>
             </div>
             <p className="text-sm text-muted-foreground">
