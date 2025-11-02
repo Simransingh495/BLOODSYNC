@@ -133,11 +133,15 @@ export default function MyRequestsPage() {
         await addDoc(notificationCollection, acceptedInAppNotification);
 
         const emailHtml = `<h1>Your Offer was Accepted!</h1><p>Your offer to donate ${requestDoc.bloodType} blood has been accepted by ${requestDoc.patientName}.</p><p><b>Patient Contact Email:</b> ${requestDoc.contactEmail}</p><p><b>Patient Contact Phone:</b> ${requestDoc.contactPhone}</p><p>Please coordinate with them directly. Thank you for being a hero!</p>`;
-        await sendEmailNotification(match.donorEmail, 'Your Blood Donation Offer Was Accepted!', emailHtml);
+        const emailResponse = await sendEmailNotification(match.donorEmail, 'Your Blood Donation Offer Was Accepted!', emailHtml);
+
+        if (!emailResponse.ok) {
+          throw new Error('Failed to send acceptance email.');
+        }
 
         toast({
           title: 'Match Accepted!',
-          description: 'The donor has been notified with your contact details via email.',
+          description: 'The donor has been notified with your contact details.',
         });
 
         const otherPendingMatches = matches?.filter(m => m.requestId === match.requestId && m.id !== match.id && m.status === 'pending');

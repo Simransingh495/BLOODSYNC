@@ -123,7 +123,7 @@ export default function OverviewPage() {
 
       toast({
         title: 'Offer Sent!',
-        description: `The patient has been notified of your offer via email and in-app message.`,
+        description: `The patient has been notified of your offer.`,
       });
     } catch (err: any) {
       console.error('Error offering donation: ', err);
