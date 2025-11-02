@@ -7,8 +7,8 @@ import { Menu } from 'lucide-react';
 export function MainHeader() {
   const navLinks = [
     { href: '/', label: 'Home' },
-    { href: '/register', label: 'Register as Donor' },
-    { href: '/app/find-donors', label: 'Find a Donor' },
+    { href: '/register', label: 'Donate Blood' },
+    { href: '/app/request-blood', label: 'Request Blood' },
     { href: '/admin', label: 'Admin' },
   ];
 
@@ -62,8 +62,11 @@ export function MainHeader() {
         </Sheet>
         
         <div className="flex flex-1 items-center justify-end space-x-2">
-           <Button asChild>
+           <Button asChild variant="ghost">
             <Link href="/login">Login</Link>
+          </Button>
+          <Button asChild>
+            <Link href="/register">Register</Link>
           </Button>
         </div>
       </div>

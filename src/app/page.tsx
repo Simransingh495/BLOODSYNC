@@ -8,7 +8,6 @@ import {
   HeartHandshake,
   Search,
   UserPlus,
-  BarChart,
   Droplets,
   LifeBuoy,
 } from 'lucide-react';
@@ -82,7 +81,7 @@ export default function Home() {
             </p>
             <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:justify-center">
               <Button asChild size="lg" className="rounded-full">
-                <Link href="/register">Register as a Donor</Link>
+                <Link href="/register">Donate Blood</Link>
               </Button>
               <Button
                 asChild
@@ -90,7 +89,7 @@ export default function Home() {
                 variant="secondary"
                 className="rounded-full"
               >
-                <Link href="/app/find-donors">Find a Donor</Link>
+                <Link href="/app/request-blood">Request Blood</Link>
               </Button>
             </div>
           </div>
