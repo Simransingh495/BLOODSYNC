@@ -97,12 +97,17 @@ service cloud.firestore {
     match /donationMatches/{donationMatchId} {
 
       function isRequestOwner() {
-        let requestDoc = get(/databases/$(database)/documents/bloodRequests/$(request.resource.data.requestId));
+        let requestDoc = get(/databases/$(database)/documents/bloodRequests/$(resource.data.requestId));
         return request.auth.uid == requestDoc.data.userId;
       }
 
       function isDonor() {
         return request.auth.uid == resource.data.donorId;
+      }
+      
+      function isNewRequestOwner() {
+        let requestDoc = get(/databases/$(database)/documents/bloodRequests/$(request.resource.data.requestId));
+        return request.auth.uid == requestDoc.data.userId;
       }
 
       // Allow any authenticated user to create a donation match.
@@ -112,7 +117,7 @@ service cloud.firestore {
       allow get, list: if request.auth != null;
 
       // Allow only the involved parties to update the match (e.g., to accept/reject).
-      allow update: if isRequestOwner() || isDonor();
+      allow update: if isNewRequestOwner() || isDonor();
 
       // Prevent deletion of donation matches.
       allow delete: if false;
@@ -136,7 +141,7 @@ service cloud.firestore {
 
       // Allow authenticated users to list ONLY their own donations.
       // This rule requires the client query to use a 'where("donorId", "==", request.auth.uid)' clause.
-      allow list: if request.auth != null && request.query.resource.data.donorId == request.auth.uid;
+      allow list: if request.auth != null && request.query.get("donorId") == request.auth.uid;
 
       // Prevent updates and deletions to maintain data integrity.
       allow update, delete: if false;
@@ -160,7 +165,7 @@ service cloud.firestore {
       
       // A user can query notifications only if they are querying for their own userId.
       // This requires the client query to include a `where('userId', '==', request.auth.uid)` filter.
-      allow list: if request.auth != null && request.query.resource.data.userId == request.auth.uid;
+      allow list: if request.query.filters.size() > 0 && 'userId' in request.query.filters && request.query.filters.userId == request.auth.uid;
 
       // Allow a user to update their own notification (e.g., to mark it as read).
       allow update: if request.auth.uid == resource.data.userId;
