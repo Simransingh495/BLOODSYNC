@@ -18,6 +18,7 @@ import { users, bloodRequests, donations } from '@/lib/data';
 
 export default function Home() {
   const heroImage = PlaceHolderImages.find((img) => img.id === 'hero-image');
+  const communityImage = PlaceHolderImages.find((img) => img.id === 'community-image');
 
   const stats = [
     {
@@ -31,9 +32,9 @@ export default function Home() {
       icon: LifeBuoy,
     },
     {
-      title: 'Successful Donations',
+      title: 'Lives Saved',
       value: donations.length,
-      icon: Droplets,
+      icon: HeartHandshake,
     },
   ];
 
@@ -122,16 +123,18 @@ export default function Home() {
         </section>
 
         {/* Stats Section */}
-        <section className="bg-background py-12 sm:py-16">
+        <section className="bg-secondary/50 py-12 sm:py-16">
           <div className="container mx-auto px-4">
             <div className="grid grid-cols-1 gap-8 text-center md:grid-cols-3">
               {stats.map((stat) => (
                 <div key={stat.title} className="flex flex-col items-center">
-                  <stat.icon className="h-10 w-10 text-primary" />
-                  <p className="mt-2 text-4xl font-bold tracking-tight text-foreground">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
+                    <stat.icon className="h-8 w-8" />
+                  </div>
+                  <p className="mt-4 text-4xl font-bold tracking-tight text-foreground">
                     {stat.value}+
                   </p>
-                  <p className="text-base font-medium text-muted-foreground">
+                  <p className="mt-1 text-base font-medium text-muted-foreground">
                     {stat.title}
                   </p>
                 </div>
@@ -141,14 +144,14 @@ export default function Home() {
         </section>
 
         {/* About Us Section */}
-        <section id="about" className="bg-secondary/50 py-16 sm:py-24">
+        <section id="about" className="bg-background py-16 sm:py-24">
           <div className="container mx-auto px-4">
             <div className="mx-auto max-w-3xl text-center">
               <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-                About BloodSync
+                How BloodSync Works
               </h2>
               <p className="mt-4 text-lg text-muted-foreground">
-                BloodSync is a modern, AI-powered platform dedicated to bridging the gap between blood donors and patients in urgent need. Our mission is to create a seamless, efficient, and community-driven network to save lives. We believe that technology can solve the critical problem of blood shortages by connecting people in a timely and intelligent manner.
+                Our mission is to create a seamless, efficient, and community-driven network to save lives. We believe that technology can solve the critical problem of blood shortages by connecting people in a timely and intelligent manner.
               </p>
             </div>
             <div className="mt-12 grid grid-cols-1 gap-12 md:grid-cols-3">
@@ -170,32 +173,62 @@ export default function Home() {
         </section>
         
         {/* Features Section */}
-        <section id="features" className="bg-background py-16 sm:py-24">
+        <section id="features" className="bg-secondary/50 py-16 sm:py-24">
           <div className="container mx-auto px-4">
-             <div className="mx-auto max-w-2xl text-center">
+             <div className="mx-auto max-w-3xl text-center">
               <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-                Platform Features
+                Powerful Platform Features
               </h2>
               <p className="mt-4 text-lg text-muted-foreground">
-                Powerful tools designed to make donating and receiving blood simpler than ever.
+                We've built a suite of powerful tools designed to make the process of donating and receiving blood simpler and more efficient than ever before.
               </p>
             </div>
-            <div className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
+            <div className="mt-16 grid grid-cols-1 gap-y-12 gap-x-8 md:grid-cols-2 lg:grid-cols-2">
               {features.map((feature) => (
-                 <div key={feature.title} className="flex flex-col items-center text-center">
-                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
-                    <feature.icon className="h-8 w-8" />
+                 <div key={feature.title} className="flex items-start gap-4">
+                  <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                    <feature.icon className="h-6 w-6" />
                   </div>
-                  <h3 className="mt-5 text-xl font-semibold text-foreground">
-                    {feature.title}
-                  </h3>
-                  <p className="mt-2 text-base text-muted-foreground">
-                    {feature.description}
-                  </p>
+                  <div>
+                    <h3 className="text-xl font-semibold text-foreground">
+                      {feature.title}
+                    </h3>
+                    <p className="mt-1 text-base text-muted-foreground">
+                      {feature.description}
+                    </p>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
+        </section>
+
+        {/* Join Community Section */}
+        <section className="relative bg-primary/5 py-16 sm:py-24">
+            {communityImage && (
+              <Image
+                src={communityImage.imageUrl}
+                alt={communityImage.description}
+                fill
+                className="object-cover object-center opacity-10"
+                data-ai-hint={communityImage.imageHint}
+              />
+            )}
+            <div className="relative container mx-auto px-4">
+              <div className="mx-auto max-w-3xl text-center">
+                <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+                  Join Our Community of Lifesavers
+                </h2>
+                <p className="mt-4 text-lg text-muted-foreground">
+                  Become a registered donor on BloodSync today and be a hero in someone's story. Your single act of kindness can save up to three lives.
+                </p>
+                <div className="mt-8">
+                   <Button asChild size="lg" className="rounded-full">
+                    <Link href="/register">Register to Donate</Link>
+                  </Button>
+                </div>
+              </div>
+            </div>
         </section>
 
       </main>
@@ -207,6 +240,11 @@ export default function Home() {
             </Link>
             <p className="text-sm text-muted-foreground">Saving lives, one drop at a time.</p>
           </div>
+          <nav className="flex gap-4">
+            <Link href="#about" className="text-sm text-muted-foreground hover:text-primary">About</Link>
+            <Link href="#features" className="text-sm text-muted-foreground hover:text-primary">Features</Link>
+            <Link href="/login" className="text-sm text-muted-foreground hover:text-primary">Login</Link>
+          </nav>
           <p className="text-sm text-muted-foreground">
             © {new Date().getFullYear()} BloodSync. All rights reserved.
           </p>
