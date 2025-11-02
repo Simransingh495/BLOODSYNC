@@ -4,41 +4,26 @@ export function Logo({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        'flex flex-col items-center font-bold tracking-tight text-primary',
+        'flex items-center gap-2 font-bold tracking-tight text-primary',
         className
       )}
     >
       <svg
-        className="h-12 w-12"
+        className="h-8 w-8"
         viewBox="0 0 24 24"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
         <path
-          d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09"
+          d="M12 2C7.58172 2 4 5.58172 4 10C4 12.8357 5.25363 15.3859 7 17.1517C8.74637 18.9174 9.99999 21.4677 10 22L14 22C14 21.4677 15.2536 18.9174 17 17.1517C18.7464 15.3859 20 12.8357 20 10C20 5.58172 16.4183 2 12 2Z"
           fill="currentColor"
         />
         <path
-          d="M12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5 22 5.42 19.58 3 16.5 3c-1.74 0-3.41.81-4.5 2.09"
-          fill="currentColor"
+          d="M13 6H11V9H8V11H11V14H13V11H16V9H13V6Z"
+          fill="white"
         />
       </svg>
-      <span className="font-headline text-3xl -mt-4">BloodSync</span>
-      <svg
-        className="h-12 w-12 -mt-4"
-        viewBox="0 0 24 24"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M13 10h-2v2H9v2h2v2h2v-2h2v-2h-2v-2z"
-          fill="currentColor"
-          stroke="#FFF"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
+      <span className="font-headline text-2xl">BloodSync</span>
     </div>
   );
 }

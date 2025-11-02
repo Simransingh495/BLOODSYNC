@@ -14,24 +14,8 @@ export function MainHeader() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center">
-        <div className="mr-4 hidden md:flex">
-          <Link href="/" className="mr-6 flex items-center space-x-2">
-            <Logo />
-          </Link>
-          <nav className="flex items-center space-x-6 text-sm font-medium">
-            {navLinks.map((link) => (
-              <Link
-                key={link.label}
-                href={link.href}
-                className="transition-colors hover:text-primary text-foreground/80"
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
-        </div>
-
+      <div className="container flex h-16 items-center justify-between">
+        {/* Mobile Menu Trigger */}
         <Sheet>
           <SheetTrigger asChild>
             <Button
@@ -44,10 +28,10 @@ export function MainHeader() {
             </Button>
           </SheetTrigger>
           <SheetContent side="left">
-            <Link href="/" className="flex items-center">
+            <Link href="/" className="mb-6 flex items-center">
               <Logo />
             </Link>
-            <div className="mt-6 flex flex-col gap-4">
+            <div className="flex flex-col gap-4">
               {navLinks.map((link) => (
                 <Link
                   key={link.label}
@@ -58,10 +42,39 @@ export function MainHeader() {
                 </Link>
               ))}
             </div>
+            <div className="mt-6 flex flex-col gap-2">
+               <Button asChild variant="outline">
+                <Link href="/login">Login</Link>
+              </Button>
+              <Button asChild>
+                <Link href="/register">Register</Link>
+              </Button>
+            </div>
           </SheetContent>
         </Sheet>
         
-        <div className="flex flex-1 items-center justify-end space-x-2">
+        {/* Desktop Navigation */}
+        <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
+          {navLinks.map((link) => (
+            <Link
+              key={link.label}
+              href={link.href}
+              className="transition-colors hover:text-primary text-foreground/80"
+            >
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+
+        {/* Centered Logo for Desktop */}
+        <div className="hidden md:flex absolute left-1/2 -translate-x-1/2">
+           <Link href="/">
+             <Logo />
+           </Link>
+        </div>
+        
+        {/* Auth buttons */}
+        <div className="hidden items-center space-x-2 md:flex">
            <Button asChild variant="ghost">
             <Link href="/login">Login</Link>
           </Button>
@@ -69,6 +82,14 @@ export function MainHeader() {
             <Link href="/register">Register</Link>
           </Button>
         </div>
+
+        {/* Mobile Logo */}
+         <div className="md:hidden">
+           <Link href="/">
+             <Logo />
+           </Link>
+        </div>
+
       </div>
     </header>
   );
