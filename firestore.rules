@@ -9,6 +9,7 @@
  * - /users/{userId}: Stores user profiles. Only the authenticated user can read/write their own profile. Authenticated users can list other users to find donors.
  * - /bloodRequests/{bloodRequestId}: Stores blood requests. Any authenticated user can create or read a blood request. Only the user who created the request can update or delete it.
  * - /donationMatches/{donationMatchId}: Stores donation matches.  Any authenticated user can create a donation match. No updates or deletes are allowed.
+ * - /donations/{donationId}: Stores donation records. Authenticated users can create donations. Users can only read their own donations.
  * - /users/{userId}/notifications/{notificationId}: Stores notifications for a specific user. Only the user can read/write their own notifications.
  *
  * Key Security Decisions:
@@ -108,6 +109,30 @@ service cloud.firestore {
 
       // Prevent deletion of donation matches.
       allow delete: if false;
+    }
+    
+    /**
+     * @description Controls access to donations.
+     * @path /donations/{donationId}
+     * @allow (create) Any authenticated user can create a donation record.
+     * @allow (list) Authenticated users can list donations.
+     * @allow (get) Only the donor can read their own donation record.
+     * @deny (update, delete) No updates or deletes allowed.
+     * @principle Allows creation of donation records, but restricts read access and prevents modification.
+     */
+    match /donations/{donationId} {
+      // Allow any authenticated user to create a donation record.
+      allow create: if request.auth != null;
+
+      // Allow a user to read their own donation records.
+      // This supports querying for a user's donation history.
+      allow get: if request.auth.uid == resource.data.donorId;
+
+      // Allow authenticated users to list donations (e.g. for admin panels)
+      allow list: if request.auth != null;
+
+      // Prevent updates and deletions to maintain data integrity.
+      allow update, delete: if false;
     }
 
     /**
