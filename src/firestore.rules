@@ -97,10 +97,10 @@ service cloud.firestore {
     match /donationMatches/{donationMatchId} {
 
       function isRequestOwner() {
-        let requestDoc = get(/databases/$(database)/documents/bloodRequests/$(resource.data.requestId));
+        let requestDoc = get(/databases/$(database)/documents/bloodRequests/$(request.resource.data.requestId));
         return request.auth.uid == requestDoc.data.userId;
       }
-
+      
       function isDonor() {
         return request.auth.uid == resource.data.donorId;
       }
@@ -112,7 +112,8 @@ service cloud.firestore {
       allow get, list: if request.auth != null;
 
       // Allow only the involved parties to update the match (e.g., to accept/reject).
-      allow update: if isRequestOwner() || isDonor();
+      allow update: if (exists(/databases/$(database)/documents/bloodRequests/$(request.resource.data.requestId)) && get(/databases/$(database)/documents/bloodRequests/$(request.resource.data.requestId)).data.userId == request.auth.uid) || request.auth.uid == resource.data.donorId;
+
 
       // Prevent deletion of donation matches.
       allow delete: if false;
@@ -155,12 +156,9 @@ service cloud.firestore {
       // Allow creation if the user is authenticated and is not sending a notification to themselves.
       allow create: if request.auth != null && request.auth.uid != request.resource.data.userId;
 
-      // Allow a user to get their own notification.
-      allow get: if request.auth != null && request.auth.uid == resource.data.userId;
-      
-      // Allow a user to list their own notifications.
-      // The client query MUST enforce this by filtering where `userId` == `request.auth.uid`.
-      allow list: if request.auth != null;
+      // A user can read a notification if they are the recipient.
+      // The client query MUST use a where() clause to enforce this on list operations.
+      allow read: if request.auth.uid == resource.data.userId;
 
       // Allow a user to update their own notification (e.g., to mark it as read).
       allow update: if request.auth != null && request.auth.uid == resource.data.userId;
