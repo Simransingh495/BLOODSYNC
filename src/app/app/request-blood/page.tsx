@@ -71,7 +71,7 @@ export default function RequestBloodPage() {
   });
 
   useEffect(() => {
-    // This entire block only runs on the client.
+    // This effect runs only on the client, preventing a hydration mismatch.
     if (navigator.geolocation) {
       setIsLocationLoading(true);
       navigator.geolocation.getCurrentPosition(
@@ -299,5 +299,3 @@ export default function RequestBloodPage() {
     </div>
   );
 }
-
-    
