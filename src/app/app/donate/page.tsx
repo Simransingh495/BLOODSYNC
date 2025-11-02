@@ -147,7 +147,7 @@ export default function DonatePage() {
         donorName: `${currentUserData.firstName} ${currentUserData.lastName}`,
         donorBloodType: currentUserData.bloodType,
         donorLocation: currentUserData.location,
-        donorContactPhone: currentUserData.phoneNumber || 'Not available',
+        donorContactPhone: currentUserData.phoneNumber || 'Not provided',
         matchDate: serverTimestamp(),
         status: 'pending',
     };

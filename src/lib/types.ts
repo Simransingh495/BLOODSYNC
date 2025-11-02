@@ -45,7 +45,7 @@ export type DonationMatch = {
     donorName: string;
     donorLocation: string;
     donorBloodType: string;
-    donorContactPhone?: string;
+    donorContactPhone: string;
     matchDate: Timestamp;
     status: 'pending' | 'accepted' | 'rejected' | 'completed';
 };

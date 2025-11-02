@@ -165,7 +165,7 @@ export default function MyRequestsPage() {
                                           <p className="text-sm text-muted-foreground">Blood Type: {acceptedOffer.donorBloodType}</p>
                                           <p className="text-sm text-muted-foreground flex items-center gap-2 mt-1">
                                              <Phone className="h-4 w-4" /> 
-                                             {acceptedOffer.donorContactPhone || "Contact info not provided"}
+                                             <a href={`tel:${acceptedOffer.donorContactPhone}`} className="hover:underline">{acceptedOffer.donorContactPhone}</a>
                                           </p>
                                       </div>
                                   </div>
