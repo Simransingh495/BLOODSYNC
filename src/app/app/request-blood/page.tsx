@@ -71,7 +71,7 @@ export default function RequestBloodPage() {
   });
 
   useEffect(() => {
-    if (navigator.geolocation) {
+    if (typeof window !== 'undefined' && navigator.geolocation) {
       setIsLocationLoading(true);
       navigator.geolocation.getCurrentPosition(
         async (position) => {
@@ -84,7 +84,9 @@ export default function RequestBloodPage() {
             const data = await response.json();
             if (data.address) {
               const locationString = `${data.address.city || data.address.town || ''}, ${data.address.state || ''}`;
-              form.setValue('location', locationString);
+              if (locationString.length > 2) {
+                form.setValue('location', locationString);
+              }
             }
           } catch (error) {
             console.error('Error fetching location name:', error);
@@ -120,6 +122,7 @@ export default function RequestBloodPage() {
       });
       return;
     }
+    if (!firestore) return;
     setIsLoading(true);
 
     const requestsCollection = collection(firestore, 'bloodRequests');
