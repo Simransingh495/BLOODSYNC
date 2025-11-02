@@ -5,6 +5,8 @@ import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useState } from 'react';
+import { Loader2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -32,11 +34,9 @@ import {
 } from '@/components/ui/select';
 import { bloodTypes } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore } from '@/firebase';
+import { useAuth, useFirestore, setDocumentNonBlocking } from '@/firebase';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
-import { useState } from 'react';
-import { Loader2 } from 'lucide-react';
+import { doc } from 'firebase/firestore';
 
 const formSchema = z.object({
   firstName: z.string().min(2, {
@@ -82,8 +82,8 @@ export default function RegisterPage() {
       );
       const user = userCredential.user;
 
-      // Create a user document in Firestore
-      await setDoc(doc(firestore, 'users', user.uid), {
+      const userDocRef = doc(firestore, 'users', user.uid);
+      const userData = {
         id: user.uid,
         firstName: values.firstName,
         lastName: values.lastName,
@@ -92,7 +92,12 @@ export default function RegisterPage() {
         isDonor: true, // Default to donor
         location: '', // Will be updated later
         lastDonationDate: null,
-      });
+        availability: 'Available',
+        role: 'donor',
+      };
+      
+      // Use the non-blocking function to create the user document
+      setDocumentNonBlocking(userDocRef, userData, { merge: false });
 
       toast({
         title: 'Registration Successful',
