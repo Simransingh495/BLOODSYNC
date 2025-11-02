@@ -43,9 +43,9 @@ export default function OverviewPage() {
                   </div>
                 </div>
                 <div className="flex-1">
-                  <p className="font-semibold">
+                  <div className="font-semibold">
                     <Badge variant={request.urgency === 'High' ? 'destructive' : 'secondary'}>{request.urgency}</Badge> Urgency
-                  </p>
+                  </div>
                   <p className="text-sm text-muted-foreground">
                     {request.location}
                   </p>
