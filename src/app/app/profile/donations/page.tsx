@@ -21,13 +21,18 @@ export default function DonationHistoryPage() {
   const donationsQuery = useMemoFirebase(
     () => user ? query(
       collection(firestore, 'donations'),
-      where('donorId', '==', user.uid),
-      orderBy('donationDate', 'desc')
+      where('donorId', '==', user.uid)
+      // Removing orderBy to prevent Firestore internal assertion error
+      // orderBy('donationDate', 'desc') 
     ) : null,
     [firestore, user]
   );
   
   const { data: donations, isLoading } = useCollection<Donation>(donationsQuery);
+
+  const sortedDonations = donations 
+    ? [...donations].sort((a, b) => b.donationDate.toDate().getTime() - a.donationDate.toDate().getTime()) 
+    : [];
 
   return (
     <div className="space-y-6">
@@ -40,7 +45,7 @@ export default function DonationHistoryPage() {
         <CardHeader>
           <CardTitle>Your Donations</CardTitle>
           <CardDescription>
-            You have made {donations?.length ?? 0} donations.
+            You have made {sortedDonations?.length ?? 0} donations.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -51,9 +56,9 @@ export default function DonationHistoryPage() {
                 <Skeleton className="h-16 w-full" />
               </div>
             )}
-            {!isLoading && donations && donations.length > 0 ? (
+            {!isLoading && sortedDonations && sortedDonations.length > 0 ? (
                 <div className="space-y-4">
-                    {donations.map((donation) => (
+                    {sortedDonations.map((donation) => (
                         <div key={donation.id} className="flex items-center gap-4 rounded-lg border p-4">
                             <Droplets className="h-8 w-8 text-primary" />
                             <div className="flex-1">
