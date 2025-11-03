@@ -57,8 +57,6 @@ export default function MyRequestsPage() {
         ? query(
             collection(firestore, 'bloodRequests'),
             where('userId', '==', user.uid)
-            // Removing orderBy to prevent Firestore internal assertion error
-            // orderBy('createdAt', 'desc')
           )
         : null,
     [firestore, user]
@@ -106,6 +104,9 @@ export default function MyRequestsPage() {
       
       const notificationCollection = collection(firestore, 'notifications');
       
+      let smsMessage = '';
+      let smsPhoneNumber = '';
+
       if (response === 'accepted' && requestDoc) {
         await updateDoc(requestRef, { status: 'Fulfilled' });
 
@@ -122,13 +123,20 @@ export default function MyRequestsPage() {
         
         const acceptedInAppNotification: Omit<Notification, 'id'> = {
           userId: match.donorId,
-          message: `Your donation offer for ${requestDoc.bloodType} blood has been accepted!`,
+          message: `Your donation offer for ${requestDoc.bloodType} blood has been accepted! The patient's contact: ${requestDoc.contactPhone}`,
           type: 'offer_accepted',
           relatedId: match.requestId,
           isRead: false,
           createdAt: serverTimestamp(),
         };
         await addDoc(notificationCollection, acceptedInAppNotification);
+
+        smsMessage = `Your donation offer for ${requestDoc.bloodType} blood has been accepted! Please contact the patient at ${requestDoc.contactPhone}. Thank you! - BloodSync`;
+        const donorUserDoc = await doc(firestore, 'users', match.donorId);
+        // This assumes phone number is stored on the donor's user doc.
+        const donorUser = (await donorUserDoc.get()).data() as User;
+        smsPhoneNumber = donorUser.phoneNumber || '';
+
 
         toast({
           title: 'Match Accepted!',
@@ -145,7 +153,7 @@ export default function MyRequestsPage() {
       } else if (response === 'rejected' && requestDoc) {
         const rejectedInAppNotification: Omit<Notification, 'id'> = {
           userId: match.donorId,
-          message: `Your offer for request #${match.requestId.substring(0, 5)} was not accepted this time.`,
+          message: `Your offer for request #${match.requestId.substring(0, 5)} was not accepted this time. Thank you for your generosity.`,
           type: 'offer_rejected',
           relatedId: match.requestId,
           isRead: false,
@@ -158,6 +166,22 @@ export default function MyRequestsPage() {
           description: 'The offer has been declined and the donor has been notified.',
         });
       }
+      
+      if (smsMessage && smsPhoneNumber) {
+         const smsResponse = await fetch('/api/send-sms', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phoneNumber: smsPhoneNumber, message: smsMessage }),
+        });
+         if (!smsResponse.ok) {
+            const errorData = await smsResponse.json();
+            console.error("SMS Error:", errorData.error);
+            // Non-critical, so we don't throw, just log.
+            toast({ variant: "destructive", title: "SMS Failed", description: `Could not notify donor via SMS: ${errorData.error}` });
+        }
+      }
+
+
     } catch (err: any) {
       console.error('Error responding to match: ', err);
       toast({ variant: 'destructive', title: 'Error', description: err.message });
@@ -364,5 +388,3 @@ export default function MyRequestsPage() {
     </div>
   );
 }
-
-    

@@ -201,6 +201,22 @@ export default function DonatePage() {
       };
       await addDoc(notificationCollection, newNotification);
 
+      // 3. Send an SMS notification
+      if (request.contactPhone) {
+        const smsMessage = `Good news! A donor (${currentUserData.firstName}, Blood Type: ${currentUserData.bloodType}) has offered to fulfill your blood request. Please check the BloodSync app for details.`;
+        const smsResponse = await fetch('/api/send-sms', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phoneNumber: request.contactPhone, message: smsMessage }),
+        });
+
+        if (!smsResponse.ok) {
+          const errorData = await smsResponse.json();
+          throw new Error(errorData.error || 'Failed to send SMS notification.');
+        }
+      }
+
+
       toast({
         title: 'Offer Sent!',
         description: `The patient has been notified of your offer.`,
