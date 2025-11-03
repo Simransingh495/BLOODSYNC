@@ -49,7 +49,6 @@ export default function LoginPage() {
     setIsClient(true);
   }, []);
 
-
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -79,9 +78,13 @@ export default function LoginPage() {
       setIsLoading(false);
     }
   }
+  
+  if (!isClient) {
+    return null; // Or a loading spinner
+  }
 
   return (
-    <Card className="w-full max-w-sm" key={isClient ? 'client' : 'server'}>
+    <Card className="w-full max-w-sm">
       <CardHeader>
         <CardTitle className="font-headline text-2xl">Login</CardTitle>
         <CardDescription>
