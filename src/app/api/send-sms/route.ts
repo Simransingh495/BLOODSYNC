@@ -7,6 +7,17 @@ const sendSmsSchema = z.object({
   body: z.string(),
 });
 
+// This is a simulated SMS sending function.
+// It logs the message to the console instead of sending a real SMS.
+// This is useful for development and avoids the need for a paid SMS service.
+async function simulateSendSms(to: string, body: string) {
+  console.log('\n--- SIMULATING SENDING SMS ---');
+  console.log(`To: ${to}`);
+  console.log(`Body: ${body}`);
+  console.log('-----------------------------\n');
+  return { success: true, message: 'SMS simulated successfully.' };
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -20,54 +31,26 @@ export async function POST(request: Request) {
     }
 
     const { to, body: smsBody } = validation.data;
-    const apiKey = process.env.FAST2SMS_API_KEY;
 
-    if (!apiKey) {
+    // Use the simulated function
+    const result = await simulateSendSms(to, smsBody);
+
+    if (!result.success) {
       return NextResponse.json(
-        { error: 'API key for Fast2SMS is not configured.' },
-        { status: 500 }
-      );
-    }
-    
-    // Fast2SMS expects numbers without the country code prefix like +
-    const numbers = to.replace('+', '');
-
-    const response = await fetch('https://www.fast2sms.com/dev/bulkV2', {
-      method: 'POST',
-      headers: {
-        'authorization': apiKey,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        route: 'v3', // or 'dlt' or 'p' depending on your use case
-        sender_id: 'TXTIND', // You may need to register this with Fast2SMS
-        message: smsBody,
-        language: 'english',
-        flash: 0,
-        numbers: numbers,
-      }),
-    });
-
-    const data = await response.json();
-
-    if (!data.return) {
-      // Fast2SMS returns 'return: false' on failure
-      console.error('Fast2SMS Error:', data.message);
-      return NextResponse.json(
-        { error: 'Failed to send SMS via Fast2SMS.', details: data.message },
+        { error: 'Failed to send simulated SMS.', details: result.message },
         { status: 500 }
       );
     }
 
     return NextResponse.json({
-      message: 'SMS sent successfully via Fast2SMS!',
-      details: data,
+      message: 'SMS simulated successfully!',
+      details: result,
     });
 
   } catch (error: any) {
     console.error('API Route Error:', error);
     return NextResponse.json(
-      { error: 'Failed to send SMS.', details: error.message },
+      { error: 'Failed to process SMS request.', details: error.message },
       { status: 500 }
     );
   }
