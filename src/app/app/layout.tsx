@@ -14,7 +14,7 @@ import {
   Bell,
 } from 'lucide-react';
 import { UserNav } from '@/components/user-nav';
-import { useUser, useFirestore, useDoc, useCollection, useMemoFirebase } from '@/firebase';
+import { useUser, useFirestore, useDoc, useCollection, useMemoFirebase, FirebaseClientProvider } from '@/firebase';
 import { doc, collection, query, where } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import type { Notification } from '@/lib/types';
