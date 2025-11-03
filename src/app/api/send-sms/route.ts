@@ -1,49 +1,59 @@
 
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
+import twilio from 'twilio';
 
 const sendSmsSchema = z.object({
   to: z.string(),
   body: z.string(),
 });
 
-// This is a simulated SMS sending function.
-// In a real application, you would integrate a service like Twilio here.
-async function sendSms(to: string, body: string) {
-  console.log('--- SIMULATING SENDING SMS ---');
-  console.log(`To: ${to}`);
-  console.log(`Body: ${body}`);
-  console.log('-----------------------------');
-  
-  // Simulate a delay
-  await new Promise(resolve => setTimeout(resolve, 500));
-  
-  // Simulate a successful response
-  return { success: true, sid: `SM${Math.random().toString(36).substring(2)}` };
-}
+// Initialize Twilio client
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
+const authToken = process.env.TWILIO_AUTH_TOKEN;
+const twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER;
+
+const client = twilio(accountSid, authToken);
 
 export async function POST(request: Request) {
+  // Check if Twilio credentials are configured
+  if (!accountSid || !authToken || !twilioPhoneNumber) {
+    console.error('Twilio credentials are not configured in .env file.');
+    return NextResponse.json(
+      { error: 'SMS service is not configured.' },
+      { status: 500 }
+    );
+  }
+
   try {
     const body = await request.json();
     const validation = sendSmsSchema.safeParse(body);
 
     if (!validation.success) {
-      return NextResponse.json({ error: 'Invalid input.', details: validation.error.flatten() }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Invalid input.', details: validation.error.flatten() },
+        { status: 400 }
+      );
     }
 
     const { to, body: smsBody } = validation.data;
 
-    // In a real app, you would check for API keys here.
+    const message = await client.messages.create({
+      body: smsBody,
+      from: twilioPhoneNumber,
+      to: to,
+    });
 
-    const { success, sid } = await sendSms(to, smsBody);
-
-    if (!success) {
-      return NextResponse.json({ error: 'Failed to send SMS.' }, { status: 500 });
-    }
-
-    return NextResponse.json({ message: 'SMS sent successfully!', sid });
+    console.log('SMS sent successfully! SID:', message.sid);
+    return NextResponse.json({
+      message: 'SMS sent successfully!',
+      sid: message.sid,
+    });
   } catch (error: any) {
-    console.error('API Route Error:', error);
-    return NextResponse.json({ error: 'An unexpected error occurred.', details: error.message }, { status: 500 });
+    console.error('Twilio API Error:', error);
+    return NextResponse.json(
+      { error: 'Failed to send SMS.', details: error.message },
+      { status: 500 }
+    );
   }
 }
