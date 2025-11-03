@@ -20,23 +20,54 @@ export async function POST(request: Request) {
     }
 
     const { to, body: smsBody } = validation.data;
+    const apiKey = process.env.FAST2SMS_API_KEY;
 
-    // --- SIMULATED SMS SERVICE ---
-    // In a real app, this is where you would integrate with Twilio, Vonage, etc.
-    // For now, we just log to the console to show it's working.
-    console.log('--- SIMULATING SENDING SMS ---');
-    console.log(`To: ${to}`);
-    console.log(`Body: ${smsBody}`);
-    console.log('-----------------------------');
-    // --- END SIMULATION ---
+    if (!apiKey) {
+      return NextResponse.json(
+        { error: 'API key for Fast2SMS is not configured.' },
+        { status: 500 }
+      );
+    }
+    
+    // Fast2SMS expects numbers without the country code prefix like +
+    const numbers = to.replace('+', '');
+
+    const response = await fetch('https://www.fast2sms.com/dev/bulkV2', {
+      method: 'POST',
+      headers: {
+        'authorization': apiKey,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        route: 'v3', // or 'dlt' or 'p' depending on your use case
+        sender_id: 'TXTIND', // You may need to register this with Fast2SMS
+        message: smsBody,
+        language: 'english',
+        flash: 0,
+        numbers: numbers,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!data.return) {
+      // Fast2SMS returns 'return: false' on failure
+      console.error('Fast2SMS Error:', data.message);
+      return NextResponse.json(
+        { error: 'Failed to send SMS via Fast2SMS.', details: data.message },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({
-      message: 'SMS sent successfully! (Simulated)',
+      message: 'SMS sent successfully via Fast2SMS!',
+      details: data,
     });
+
   } catch (error: any) {
-    console.error('Simulated SMS Error:', error);
+    console.error('API Route Error:', error);
     return NextResponse.json(
-      { error: 'Failed to send simulated SMS.', details: error.message },
+      { error: 'Failed to send SMS.', details: error.message },
       { status: 500 }
     );
   }
