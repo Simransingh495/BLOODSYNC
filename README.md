@@ -5,11 +5,11 @@ BloodSync is an AI-powered web app that connects blood donors and patients in re
 ⚙️ Tech Stack
 
 Frontend: React, Tailwind CSS, Geolocation 
+Language: TypeScript
 Backend: Node.js, Express.js
 Database: MongoDB
-AI Module: Python (Scikit-learn, Pandas)
 Notifications: one signal (SMS)
-Auth & Security: JWT, bcrypt, HTTPS
+Auth & Security: Firebase Authentication
 
 💡 Features
 
