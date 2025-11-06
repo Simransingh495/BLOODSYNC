@@ -11,58 +11,10 @@ import {
   User,
   Droplets,
   Loader2,
-  Bell,
 } from 'lucide-react';
 import { UserNav } from '@/components/user-nav';
-import { useUser, useFirestore, useDoc, useCollection, useMemoFirebase } from '@/firebase';
-import { doc, collection, query, where, updateDoc } from 'firebase/firestore';
-import { useToast } from '@/hooks/use-toast';
-import type { Notification } from '@/lib/types';
-import { Button } from '@/components/ui/button';
-
-function RealtimeNotificationListener() {
-  const { user } = useUser();
-  const firestore = useFirestore();
-  const { toast } = useToast();
-
-  const notificationsQuery = useMemoFirebase(
-    () =>
-      user
-        ? query(
-            collection(firestore, 'notifications'),
-            where('userId', '==', user.uid)
-          )
-        : null,
-    [firestore, user]
-  );
-  
-  const { data: notifications } = useCollection<Notification>(notificationsQuery);
-
-  const toastedIds = React.useRef(new Set());
-
-  React.useEffect(() => {
-    if (notifications && notifications.length > 0) {
-      notifications.forEach((notification) => {
-        // Only show a toast for new, unread notifications that haven't been shown yet
-        if (!notification.isRead && !toastedIds.current.has(notification.id)) {
-          toast({
-            title: 'New Notification',
-            description: notification.message,
-            action: (
-               <Link href="/app/profile/notifications">
-                <Button variant="secondary" size="sm">View</Button>
-               </Link>
-            ),
-          });
-          // Add the notification id to the set to prevent re-toasting
-          toastedIds.current.add(notification.id);
-        }
-      });
-    }
-  }, [notifications, toast]);
-
-  return null;
-}
+import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
 
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -114,7 +66,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen flex-col bg-secondary">
-      <RealtimeNotificationListener />
       <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 sm:px-6">
         {isLoading ? (
            <Loader2 className="h-6 w-6 animate-spin" />

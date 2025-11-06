@@ -24,7 +24,7 @@ import {
   addDoc,
   serverTimestamp,
 } from 'firebase/firestore';
-import type { BloodRequest, DonationMatch, Donation, Notification } from '@/lib/types';
+import type { BloodRequest, DonationMatch, Donation } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   ClipboardList,
@@ -97,8 +97,6 @@ export default function MyRequestsPage() {
     try {
       await updateDoc(matchRef, { status: response });
       
-      const notificationCollection = collection(firestore, 'notifications');
-      
       if (response === 'accepted' && requestDoc) {
         await updateDoc(requestRef, { status: 'Fulfilled' });
 
@@ -113,16 +111,6 @@ export default function MyRequestsPage() {
         };
         await addDoc(donationCollection, newDonation);
         
-        const acceptedInAppNotification: Omit<Notification, 'id'> = {
-          userId: match.donorId,
-          message: `Your donation offer for ${requestDoc.bloodType} blood has been accepted! The patient's contact: ${requestDoc.contactPhone}`,
-          type: 'offer_accepted',
-          relatedId: match.requestId,
-          isRead: false,
-          createdAt: serverTimestamp(),
-        };
-        await addDoc(notificationCollection, acceptedInAppNotification);
-
         toast({
           title: 'Match Accepted!',
           description: 'The donor has been notified with your contact details.',
@@ -132,29 +120,10 @@ export default function MyRequestsPage() {
         if (otherPendingMatches) {
           for (const otherMatch of otherPendingMatches) {
             await updateDoc(doc(firestore, 'donationMatches', otherMatch.id), { status: 'rejected' });
-             const rejectedInAppNotification: Omit<Notification, 'id'> = {
-              userId: otherMatch.donorId,
-              message: `Your offer for request #${match.requestId.substring(0, 5)} was not accepted this time. Thank you for your generosity.`,
-              type: 'offer_rejected',
-              relatedId: match.requestId,
-              isRead: false,
-              createdAt: serverTimestamp(),
-            };
-            await addDoc(notificationCollection, rejectedInAppNotification);
           }
         }
 
       } else if (response === 'rejected' && requestDoc) {
-        const rejectedInAppNotification: Omit<Notification, 'id'> = {
-          userId: match.donorId,
-          message: `Your offer for request #${match.requestId.substring(0, 5)} was not accepted this time. Thank you for your generosity.`,
-          type: 'offer_rejected',
-          relatedId: match.requestId,
-          isRead: false,
-          createdAt: serverTimestamp(),
-        };
-        await addDoc(notificationCollection, rejectedInAppNotification);
-
         toast({
           title: 'Offer Rejected',
           description: 'The offer has been declined and the donor has been notified.',

@@ -51,16 +51,6 @@ export type DonationMatch = {
     status: 'pending' | 'accepted' | 'rejected';
 };
 
-export type Notification = {
-    id: string;
-    userId: string; 
-    message: string;
-    type: 'request_match' | 'offer_accepted' | 'offer_rejected';
-    relatedId: string; 
-    isRead: boolean;
-    createdAt: Timestamp;
-}
-
 
 export type Donation = {
   id: string;

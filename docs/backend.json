@@ -137,47 +137,6 @@
         "matchDate",
         "status"
       ]
-    },
-    "Notification": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Notification",
-      "type": "object",
-      "description": "Represents a notification sent to a user.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the notification entity."
-        },
-        "userId": {
-          "type": "string",
-          "description": "Reference to User who receives the notification. (Relationship: User 1:N Notification)"
-        },
-        "message": {
-          "type": "string",
-          "description": "The content of the notification message."
-        },
-        "type": {
-          "type": "string",
-          "description": "Type of notification (e.g., email, sms, in-app)."
-        },
-        "sentDate": {
-          "type": "string",
-          "description": "Date when the notification was sent.",
-          "format": "date-time"
-        },
-        "status": {
-          "type": "string",
-          "description": "Status of the notification (e.g., sent, delivered, read)."
-        }
-      },
-      "required": [
-        "id",
-        "userId",
-        "message",
-        "type",
-        "sentDate",
-        "status"
-      ]
     }
   },
   "auth": {
@@ -235,24 +194,8 @@
             }
           ]
         }
-      },
-      {
-        "path": "/notifications/{notificationId}",
-        "definition": {
-          "entityName": "Notification",
-          "schema": {
-            "$ref": "#/backend/entities/Notification"
-          },
-          "description": "Stores notifications for all users in a single collection. Security rules ensure a user can only read their own notifications.",
-          "params": [
-            {
-              "name": "notificationId",
-              "description": "The unique identifier of the notification."
-            }
-          ]
-        }
       }
     ],
-    "reasoning": "The Firestore structure is designed to ensure security, scalability, and ease of debugging, adhering to the principles of Authorization Independence, Clarity of Intent, DBAC, and QAPs. \n\n1.  **Authorization Independence:** Achieved by denormalizing relevant user data (specifically, `isDonor`, `bloodType`, and `location`) into the `BloodRequest` collection. This eliminates the need for `get()` calls to the `/users/{userId}` document to determine authorization, allowing for atomic operations and simplified security rules. The DonationMatch documents store both `requestId` and `donorId`. \n\n2.  **Structural Segregation:** Each top-level collection (`users`, `bloodRequests`, `donationMatches`, `notifications`) serves a distinct purpose and has homogeneous security requirements.\n\n3.  **Access Modeling:**\n    *   User data is stored under `/users/{userId}`, providing path-based ownership for private user data.\n    *   Blood requests are stored in a top-level `/bloodRequests` collection. Authorization depends on the `userId` field within each document and denormalized donor information (blood type, location, isDonor) to enable filtering based on donor attributes without requiring additional reads.\n    *   Donation matches are stored in a top-level `/donationMatches` collection, referencing both the `BloodRequest` and the `User` (donor). The denormalized `userId` and `requestId` ensure authorization rules can be written without needing to fetch related documents.\n    *   Notifications are stored in a top-level `/notifications` collection. This allows any authenticated user to create a notification for another user without having write access to that user's private data. Read access is secured by querying where the `userId` field in the notification matches the authenticated user's ID.\n\n4.  **QAPs (Rules are not Filters):** The structure facilitates secure `list` operations by:\n    *   Storing blood requests in a top-level collection (`/bloodRequests`). This allows listing blood requests that meet certain criteria (e.g., blood type, priority) without exposing unauthorized data.\n    *   Segregating user data and blood request data, preventing the need to filter based on user attributes in the blood request collection (and vice versa). The denormalized donor information in blood requests further helps in securing list operations.\n\n5. **Notifications**: Storing notifications in a top-level collection allows a backend service or another user to create a notification without having direct write access to a user's subcollections. Users can then securely query for their own notifications."
+    "reasoning": "The Firestore structure is designed to ensure security, scalability, and ease of debugging, adhering to the principles of Authorization Independence, Clarity of Intent, DBAC, and QAPs. \n\n1.  **Authorization Independence:** Achieved by denormalizing relevant user data (specifically, `isDonor`, `bloodType`, and `location`) into the `BloodRequest` collection. This eliminates the need for `get()` calls to the `/users/{userId}` document to determine authorization, allowing for atomic operations and simplified security rules. The DonationMatch documents store both `requestId` and `donorId`. \n\n2.  **Structural Segregation:** Each top-level collection (`users`, `bloodRequests`, `donationMatches`) serves a distinct purpose and has homogeneous security requirements.\n\n3.  **Access Modeling:**\n    *   User data is stored under `/users/{userId}`, providing path-based ownership for private user data.\n    *   Blood requests are stored in a top-level `/bloodRequests` collection. Authorization depends on the `userId` field within each document and denormalized donor information (blood type, location, isDonor) to enable filtering based on donor attributes without requiring additional reads.\n    *   Donation matches are stored in a top-level `/donationMatches` collection, referencing both the `BloodRequest` and the `User` (donor). The denormalized `userId` and `requestId` ensure authorization rules can be written without needing to fetch related documents.\n\n4.  **QAPs (Rules are not Filters):** The structure facilitates secure `list` operations by:\n    *   Storing blood requests in a top-level collection (`/bloodRequests`). This allows listing blood requests that meet certain criteria (e.g., blood type, priority) without exposing unauthorized data.\n    *   Segregating user data and blood request data, preventing the need to filter based on user attributes in the blood request collection (and vice versa). The denormalized donor information in blood requests further helps in securing list operations."
   }
 }

@@ -20,7 +20,7 @@ import {
   addDoc,
 } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { BloodRequest, User, Notification } from '@/lib/types';
+import type { BloodRequest, User } from '@/lib/types';
 import { LifeBuoy, Share, HeartHandshake, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
@@ -90,19 +90,7 @@ export default function OverviewPage() {
         matchDate: serverTimestamp(),
         status: 'pending',
       };
-      const matchDoc = await addDoc(matchCollection, newMatch);
-      
-      // 2. Create an in-app notification for the patient
-      const notificationCollection = collection(firestore, 'notifications');
-      const newNotification: Omit<Notification, 'id'> = {
-        userId: request.userId,
-        message: `A donor (${currentUserData.firstName}, Blood Type: ${currentUserData.bloodType}) has offered to fulfill your request for ${request.bloodType} blood.`,
-        type: 'request_match',
-        relatedId: matchDoc.id,
-        isRead: false,
-        createdAt: serverTimestamp(),
-      };
-      await addDoc(notificationCollection, newNotification);
+      await addDoc(matchCollection, newMatch);
 
       toast({
         title: 'Offer Sent!',

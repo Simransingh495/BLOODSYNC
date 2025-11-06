@@ -11,7 +11,6 @@
  * - /bloodRequests/{bloodRequestId}: Stores blood requests. Any authenticated user can create or read a blood request. Only the user who created the request can update or delete it.
  * - /donationMatches/{donationMatchId}: Stores donation matches.  Any authenticated user can create a donation match. Only the involved users can update.
  * - /donations/{donationId}: Stores donation records. Authenticated users can create donations. Users can only read their own donations.
- * - /notifications/{notificationId}: Stores notifications for all users. Users can only read their own. Any authenticated user can create a notification for another user.
  *
  * Key Security Decisions:
  * - Data validation is limited to ensuring ownership and relational integrity.
@@ -140,30 +139,6 @@ service cloud.firestore {
 
       // Prevent updates and deletions to maintain data integrity.
       allow update, delete: if false;
-    }
-
-    /**
-     * @description Controls access to notifications.
-     * @path /notifications/{notificationId}
-     * @allow (create) Any authenticated user can create a notification for another user.
-     * @allow (get, update) A user can read or update their own notification.
-     * @allow (list) A user can only query for their own notifications.
-     * @deny (delete) Deletion is not allowed.
-     * @principle Enables a centralized notification system while maintaining privacy.
-     */
-    match /notifications/{notificationId} {
-      // Allow creation if the user is authenticated and is not sending a notification to themselves.
-      allow create: if request.auth != null && request.auth.uid != request.resource.data.userId;
-
-      // A user can read or update a single notification if they are the recipient.
-      allow get, update: if request.auth.uid == resource.data.userId;
-      
-      // A user can query notifications if their query is filtered by their own userId.
-      // This prevents listing all notifications in the system.
-      allow list: if request.auth != null && request.query.where[0][0] == 'userId' && request.query.where[0][1] == '==' && request.query.where[0][2] == request.auth.uid;
-      
-      // Prevent deletion.
-      allow delete: if false;
     }
   }
 }
