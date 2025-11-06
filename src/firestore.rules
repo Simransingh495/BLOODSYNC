@@ -95,11 +95,20 @@ service cloud.firestore {
     match /donationMatches/{donationMatchId} {
 
       function isRequestOwner() {
-        let requestDoc = get(/databases/$(database)/documents/bloodRequests/$(resource.data.requestId));
+        let requestDoc = get(/databases/$(database)/documents/bloodRequests/$(request.resource.data.requestId));
         return request.auth.uid == requestDoc.data.userId;
       }
 
       function isDonor() {
+        return request.auth.uid == request.resource.data.donorId;
+      }
+      
+      function isExistingRequestOwner() {
+          let requestDoc = get(/databases/$(database)/documents/bloodRequests/$(resource.data.requestId));
+          return request.auth.uid == requestDoc.data.userId;
+      }
+
+      function isExistingDonor() {
         return request.auth.uid == resource.data.donorId;
       }
 
@@ -110,7 +119,7 @@ service cloud.firestore {
       allow get, list: if request.auth != null;
 
       // Allow only the involved parties to update the match (e.g., to accept/reject).
-      allow update: if isRequestOwner() || isDonor();
+      allow update: if isExistingRequestOwner() || isExistingDonor();
 
       // Prevent deletion of donation matches.
       allow delete: if false;
