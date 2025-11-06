@@ -4,7 +4,6 @@
  * Core Philosophy:
  * This ruleset enforces a user-ownership model for user profiles.
  * Blood requests and donation matches are accessible with certain restrictions based on user roles and relationships.
- * Notifications are stored in a central collection, but users can only read their own.
  *
  * Data Structure:
  * - /users/{userId}: Stores user profiles. Only the authenticated user can read/write their own profile. Authenticated users can list other users to find donors.
@@ -135,7 +134,7 @@ service cloud.firestore {
 
       // Allow authenticated users to list ONLY their own donations.
       // The client query MUST filter by donorId for this to be allowed.
-      allow list: if request.auth != null && request.query.where[0][0] == 'donorId' && request.query.where[0][1] == '==' && request.query.where[0][2] == request.auth.uid;
+      allow list: if request.auth != null && request.query.where.get('donorId', ['==', request.auth.uid]).size() == 1;
 
       // Prevent updates and deletions to maintain data integrity.
       allow update, delete: if false;
