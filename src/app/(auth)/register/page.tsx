@@ -263,7 +263,7 @@ export default function RegisterPage() {
                 <FormItem>
                   <FormLabel>Phone Number</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g. +91 98765 43210" {...field} />
+                    <Input placeholder="e.g. 9876543210" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
