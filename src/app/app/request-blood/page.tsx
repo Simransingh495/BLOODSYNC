@@ -3,7 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
-import { Loader2, MapPin } from 'lucide-react';
+import { Loader2, MapPin, Hospital } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import * as geofire from 'geofire-common';
 
@@ -36,6 +36,7 @@ import { useToast } from '@/hooks/use-toast';
 import { bloodTypes } from '@/lib/types';
 import { useUser, useFirestore } from '@/firebase';
 import { collection, serverTimestamp, addDoc } from 'firebase/firestore';
+import { hospitals, type HospitalData } from '@/lib/hospitals';
 
 const formSchema = z.object({
   patientName: z.string().min(2, {
@@ -50,6 +51,8 @@ const formSchema = z.object({
   notes: z.string().optional(),
 });
 
+type NearbyHospital = HospitalData & { distance: number };
+
 export default function RequestBloodPage() {
   const { toast } = useToast();
   const firestore = useFirestore();
@@ -58,6 +61,7 @@ export default function RequestBloodPage() {
   const [isLocationLoading, setIsLocationLoading] = useState(false);
   const [userCoords, setUserCoords] = useState<{ lat: number; lon: number } | null>(null);
   const [isClient, setIsClient] = useState(false);
+  const [nearbyHospitals, setNearbyHospitals] = useState<NearbyHospital[]>([]);
 
   useEffect(() => {
     setIsClient(true);
@@ -132,6 +136,23 @@ export default function RequestBloodPage() {
       });
     }
   };
+  
+  const findNearbyHospitals = (center: { lat: number; lon: number }) => {
+    const radiusInM = 100 * 1000; // 100 km
+    const matchingHospitals: NearbyHospital[] = [];
+
+    for (const hospital of hospitals) {
+      const distanceInKm = geofire.distanceBetween([hospital.lat, hospital.lng], [center.lat, center.lon]);
+      const distanceInM = distanceInKm * 1000;
+
+      if (distanceInM <= radiusInM) {
+        matchingHospitals.push({ ...hospital, distance: distanceInKm });
+      }
+    }
+
+    matchingHospitals.sort((a, b) => a.distance - b.distance);
+    setNearbyHospitals(matchingHospitals.slice(0, 5)); // Get top 5
+  };
 
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -145,6 +166,7 @@ export default function RequestBloodPage() {
     }
     if (!firestore) return;
     setIsLoading(true);
+    setNearbyHospitals([]);
 
     const requestsCollection = collection(firestore, 'bloodRequests');
     const newRequest: any = {
@@ -158,6 +180,7 @@ export default function RequestBloodPage() {
       newRequest.lat = userCoords.lat;
       newRequest.lng = userCoords.lon;
       newRequest.geohash = geofire.geohashForLocation([userCoords.lat, userCoords.lon]);
+      findNearbyHospitals({ lat: userCoords.lat, lon: userCoords.lon });
     }
 
     try {
@@ -348,6 +371,30 @@ export default function RequestBloodPage() {
           </Form>
         </CardContent>
       </Card>
+
+      {nearbyHospitals.length > 0 && (
+         <Card>
+            <CardHeader>
+                <CardTitle>Nearby Hospitals & Blood Banks</CardTitle>
+                <CardDescription>Here are some facilities near your location that you can contact.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                {nearbyHospitals.map(hospital => (
+                    <div key={hospital.name} className="flex items-center gap-4 rounded-lg border p-4">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-secondary">
+                             <Hospital className="h-6 w-6 text-secondary-foreground" />
+                        </div>
+                        <div className="flex-1">
+                            <p className="font-semibold">{hospital.name}</p>
+                            <p className="text-sm text-muted-foreground">{hospital.address}</p>
+                        </div>
+                         <p className="text-sm font-medium text-muted-foreground">{hospital.distance.toFixed(1)} km away</p>
+                    </div>
+                ))}
+            </CardContent>
+         </Card>
+      )}
+
     </div>
   );
 }
