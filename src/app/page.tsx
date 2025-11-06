@@ -288,7 +288,7 @@ export default function Home() {
           </div>
         </section>
       </main>
-      <footer className="border-t bg-background">
+      <footer id="contact" className="border-t bg-background">
         <div className="container mx-auto flex flex-col items-center justify-between gap-4 px-4 py-6 sm:flex-row">
           <div className="flex flex-col items-center text-center sm:text-left sm:items-start">
             <Link href="/">
@@ -298,7 +298,7 @@ export default function Home() {
               Saving lives, one drop at a time.
             </p>
           </div>
-          <div className="flex flex-col items-center text-center sm:text-right sm:items-end">
+           <div className="flex flex-col items-center text-center">
             <p className="text-sm text-muted-foreground">
               © {new Date().getFullYear()} BloodSync. All rights reserved.
             </p>
