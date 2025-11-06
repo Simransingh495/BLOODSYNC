@@ -298,6 +298,11 @@ export default function Home() {
               Saving lives, one drop at a time.
             </p>
           </div>
+          <div className="flex flex-col items-center text-center sm:text-right sm:items-end">
+            <p className="text-sm text-muted-foreground">
+              © {new Date().getFullYear()} BloodSync. All rights reserved.
+            </p>
+          </div>
           <div className="flex flex-col items-center gap-2">
               <p className="text-sm font-semibold text-muted-foreground">Contact Us</p>
               <div className="flex gap-4">
@@ -316,11 +321,6 @@ export default function Home() {
                     <span className="sr-only">Email</span>
                   </a>
               </div>
-          </div>
-          <div className="flex flex-col items-center text-center sm:text-right sm:items-end">
-            <p className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} BloodSync. All rights reserved.
-            </p>
           </div>
         </div>
       </footer>
